@@ -30,6 +30,7 @@ npm install
 
 ### 3. 개발 서버 실행
 ```bash
+# 현재 디렉토리가 root(kd-jdj)인 경우, cd lumina 커맨드를 통해 이동 후 아래 명령어 실행
 npm run dev
 ```
 
