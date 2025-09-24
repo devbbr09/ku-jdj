@@ -20,17 +20,15 @@ LUMINA는 AI 기반 맞춤형 메이크업 진단 및 전문가 매칭 플랫폼
 ### 1. 프로젝트 클론 및 이동
 ```bash
 git clone <repository-url>
-cd ku-jdj/lumina
 ```
 
 ### 2. 의존성 설치
 ```bash
-npm install
+npm run install-deps
 ```
 
 ### 3. 개발 서버 실행
 ```bash
-# 현재 디렉토리가 root(kd-jdj)인 경우, cd lumina 커맨드를 통해 이동 후 아래 명령어 실행
 npm run dev
 ```
 

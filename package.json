@@ -1,0 +1,16 @@
+{
+  "name": "ku-jdj",
+  "version": "1.0.0",
+  "description": "LUMINA - AI 메이크업 진단 서비스",
+  "private": true,
+  "scripts": {
+    "dev": "cd lumina && npm run dev",
+    "build": "cd lumina && npm run build",
+    "start": "cd lumina && npm start",
+    "lint": "cd lumina && npm run lint",
+    "install-deps": "cd lumina && npm install"
+  },
+  "keywords": ["lumina", "makeup", "ai", "beauty", "nextjs"],
+  "author": "LUMINA Team",
+  "license": "MIT"
+}
