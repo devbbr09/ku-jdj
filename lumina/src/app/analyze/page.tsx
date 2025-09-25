@@ -14,6 +14,7 @@ export default function AnalyzePage() {
   const [bareFaceImage, setBareFaceImage] = useState<File | null>(null);
   const [makeupImage, setMakeupImage] = useState<File | null>(null);
   const [referenceImage, setReferenceImage] = useState<File | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const steps = [
     {
@@ -36,13 +37,122 @@ export default function AnalyzePage() {
     }
   ];
 
-  const handleAnalyze = () => {
-    // TODO: AI 분석 로직 구현
-    console.log('AI 분석 시작:', { bareFaceImage, makeupImage, referenceImage });
-    router.push('/analyze/result');
+  const handleAnalyze = async () => {
+    if (!bareFaceImage) {
+      alert('민낯 사진을 먼저 업로드해주세요.');
+      return;
+    }
+
+    console.log('AI 분석 시작 - 로딩 상태 설정');
+    setIsAnalyzing(true);
+    console.log('isAnalyzing 상태:', true);
+
+    try {
+      // 모든 이미지 업로드
+      const uploadPromises = [];
+      
+      if (bareFaceImage) {
+        const formData1 = new FormData();
+        formData1.append('file', bareFaceImage);
+        uploadPromises.push(
+          fetch('/api/upload', { method: 'POST', body: formData1 })
+            .then(res => res.json())
+            .then(data => ({ type: 'bareFace', url: data.url }))
+        );
+      }
+      
+      if (makeupImage) {
+        const formData2 = new FormData();
+        formData2.append('file', makeupImage);
+        uploadPromises.push(
+          fetch('/api/upload', { method: 'POST', body: formData2 })
+            .then(res => res.json())
+            .then(data => ({ type: 'makeup', url: data.url }))
+        );
+      }
+      
+      if (referenceImage) {
+        const formData3 = new FormData();
+        formData3.append('file', referenceImage);
+        uploadPromises.push(
+          fetch('/api/upload', { method: 'POST', body: formData3 })
+            .then(res => res.json())
+            .then(data => ({ type: 'reference', url: data.url }))
+        );
+      }
+
+      const uploadResults = await Promise.all(uploadPromises);
+      console.log('모든 이미지 업로드 성공:', uploadResults);
+      
+      // 민낯 사진을 메인 분석 이미지로 사용
+      const mainImageUrl = uploadResults.find(r => r.type === 'bareFace')?.url;
+
+      // AI 분석 (민낯 사진으로 분석)
+      const analysisResponse = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageUrl: mainImageUrl,
+          userId: 'anonymous',
+          styleId: null,
+          additionalImages: {
+            makeup: uploadResults.find(r => r.type === 'makeup')?.url,
+            reference: uploadResults.find(r => r.type === 'reference')?.url
+          }
+        }),
+      });
+
+      if (analysisResponse.ok) {
+        const result = await analysisResponse.json();
+        console.log('AI 분석 완료:', result);
+        
+        // 분석 결과를 로컬 스토리지에 저장
+        localStorage.setItem('analysisResult', JSON.stringify(result.analysis));
+        
+        // 결과 페이지로 이동
+        router.push('/analyze/result');
+      } else {
+        const error = await analysisResponse.json();
+        console.error('AI 분석 실패:', error);
+        alert('AI 분석에 실패했습니다: ' + error.error);
+      }
+    } catch (error) {
+      console.error('AI 분석 오류:', error);
+      alert('AI 분석 중 오류가 발생했습니다.');
+    } finally {
+      console.log('AI 분석 완료 - 로딩 상태 해제');
+      setIsAnalyzing(false);
+      console.log('isAnalyzing 상태:', false);
+    }
   };
 
   const isAllImagesUploaded = bareFaceImage && makeupImage && referenceImage;
+
+  // 로딩 상태일 때 로딩 화면 표시
+  console.log('렌더링 시 isAnalyzing 상태:', isAnalyzing);
+  if (isAnalyzing) {
+    console.log('로딩 화면 표시 중...');
+    return (
+      <div className="fixed inset-0 bg-transparent z-[9999] flex items-center justify-center">
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl p-8 shadow-2xl max-w-sm mx-4 border border-pink-200/50">
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-pink-400 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
+              <Sparkles className="h-8 w-8 text-white animate-spin" />
+            </div>
+            <h2 className="text-xl font-bold mb-2 text-gray-800">AI 분석중...</h2>
+            <p className="text-gray-600 text-sm">잠시만 기다려주세요</p>
+            <div className="mt-4 flex justify-center space-x-1">
+              <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+              <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,7 +162,7 @@ export default function AnalyzePage() {
           <Button
             variant="ghost"
             onClick={() => router.back()}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 hover:bg-secondary/50 hover:scale-105 active:scale-95 transition-all duration-150"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>뒤로가기</span>
@@ -149,17 +259,26 @@ export default function AnalyzePage() {
             <Button
               variant="outline"
               onClick={() => router.back()}
-              className="px-8 py-3"
+              className="px-8 py-3 hover:scale-105 active:scale-95 transition-all duration-150 hover:bg-secondary/50"
             >
               취소
             </Button>
             <Button
               onClick={handleAnalyze}
-              disabled={!isAllImagesUploaded}
-              className="lumina-button px-8 py-3 text-lg font-semibold"
+              disabled={!isAllImagesUploaded || isAnalyzing}
+              className="lumina-button px-8 py-3 text-lg font-semibold hover:scale-110 active:scale-95 transition-all duration-200 shadow-lg hover:shadow-2xl hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:brightness-100"
             >
-              <Sparkles className="mr-2 h-5 w-5" />
-              AI 분석 시작하기
+              {isAnalyzing ? (
+                <>
+                  <Sparkles className="mr-2 h-5 w-5 animate-spin" />
+                  AI 분석중...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-5 w-5" />
+                  AI 분석 시작하기
+                </>
+              )}
             </Button>
           </div>
 

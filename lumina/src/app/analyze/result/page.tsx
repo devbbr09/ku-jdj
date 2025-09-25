@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,39 +20,25 @@ import {
 export default function AnalysisResultPage() {
   const router = useRouter();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
 
-  // Mock 분석 결과 데이터
-  const analysisResult = {
-    overallScore: 78,
-    eyeScore: 85,
-    baseScore: 72,
-    lipScore: 80,
-    eyeFeedback: "아이섀도 발색이 약하고 블렌딩이 부족합니다. 웜톤 브라운 계열의 아이섀도를 사용하여 그라데이션을 더 자연스럽게 연출해보세요.",
-    baseFeedback: "파운데이션 톤이 피부보다 약간 밝은 편입니다. 현재보다 한 톤 어두운 파운데이션을 선택하시면 더 자연스러운 피부 표현이 가능합니다.",
-    lipFeedback: "현재 립 컬러가 매우 잘 어울리네요! 립라이너를 사용하면 더욱 또렷한 입술 라인을 연출할 수 있습니다.",
-    expertTips: [
-      "메이크업 전 충분한 보습은 필수! 프라이머 사용으로 지속력을 높여보세요.",
-      "브러시 대신 뷰티블렌더를 사용하면 더 자연스러운 베이스 연출이 가능합니다.",
-      "아이섀도 발색을 높이려면 아이섀도 베이스를 먼저 발라주세요."
-    ],
-    improvements: [
-      {
-        category: "아이 메이크업",
-        priority: "high",
-        suggestion: "아이섀도 블렌딩 개선"
-      },
-      {
-        category: "베이스 메이크업", 
-        priority: "medium",
-        suggestion: "파운데이션 톤 조정"
-      },
-      {
-        category: "립 메이크업",
-        priority: "low", 
-        suggestion: "립라이너 활용"
+  useEffect(() => {
+    // 로컬 스토리지에서 분석 결과 불러오기
+    const savedResult = localStorage.getItem('analysisResult');
+    console.log('로컬 스토리지에서 불러온 데이터:', savedResult);
+    
+    if (savedResult) {
+      try {
+        const result = JSON.parse(savedResult);
+        setAnalysisResult(result);
+        console.log('분석 결과 불러오기 성공:', result);
+      } catch (error) {
+        console.error('분석 결과 파싱 오류:', error);
       }
-    ]
-  };
+    } else {
+      console.log('로컬 스토리지에 분석 결과가 없습니다.');
+    }
+  }, []);
 
   const handleReanalyze = () => {
     setIsAnalyzing(true);
@@ -78,6 +64,18 @@ export default function AnalysisResultPage() {
     if (score >= 60) return 'bg-yellow-100 text-yellow-800';
     return 'bg-red-100 text-red-800';
   };
+
+  // 분석 결과가 없으면 로딩 표시
+  if (!analysisResult) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg font-semibold mb-2">분석 결과를 불러오는 중...</div>
+          <div className="text-muted-foreground">잠시만 기다려주세요.</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -118,18 +116,18 @@ export default function AnalysisResultPage() {
               <CardTitle className="text-2xl mb-4">전체 점수</CardTitle>
               <div className="flex items-center justify-center space-x-4">
                 <div className="text-6xl font-bold text-primary">
-                  {analysisResult.overallScore}
+                  {analysisResult.score}
                 </div>
                 <div className="text-2xl text-muted-foreground">/ 100</div>
               </div>
-              <Badge className={`mt-4 ${getScoreBadge(analysisResult.overallScore)}`}>
-                {analysisResult.overallScore >= 80 ? '우수' : 
-                 analysisResult.overallScore >= 60 ? '양호' : '개선 필요'}
+              <Badge className={`mt-4 ${getScoreBadge(analysisResult.score)}`}>
+                {analysisResult.score >= 80 ? '우수' : 
+                 analysisResult.score >= 60 ? '양호' : '개선 필요'}
               </Badge>
             </CardHeader>
           </Card>
 
-          {/* Detailed Scores */}
+          {/* 상세 분석 결과 */}
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <Card>
               <CardHeader>
@@ -140,11 +138,11 @@ export default function AnalysisResultPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-center">
-                  <div className={`text-3xl font-bold ${getScoreColor(analysisResult.eyeScore)}`}>
-                    {analysisResult.eyeScore}
+                  <div className={`text-3xl font-bold ${getScoreColor(analysisResult.details?.detailedFeedback?.eyeScore || 0)}`}>
+                    {analysisResult.details?.detailedFeedback?.eyeScore || 0}
                   </div>
                   <div className="text-sm text-muted-foreground mt-2">
-                    {analysisResult.eyeFeedback}
+                    {analysisResult.details?.detailedFeedback?.eyeFeedback || '분석 중...'}
                   </div>
                 </div>
               </CardContent>
@@ -159,11 +157,11 @@ export default function AnalysisResultPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-center">
-                  <div className={`text-3xl font-bold ${getScoreColor(analysisResult.baseScore)}`}>
-                    {analysisResult.baseScore}
+                  <div className={`text-3xl font-bold ${getScoreColor(analysisResult.details?.detailedFeedback?.baseScore || 0)}`}>
+                    {analysisResult.details?.detailedFeedback?.baseScore || 0}
                   </div>
                   <div className="text-sm text-muted-foreground mt-2">
-                    {analysisResult.baseFeedback}
+                    {analysisResult.details?.detailedFeedback?.baseFeedback || '분석 중...'}
                   </div>
                 </div>
               </CardContent>
@@ -178,18 +176,18 @@ export default function AnalysisResultPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-center">
-                  <div className={`text-3xl font-bold ${getScoreColor(analysisResult.lipScore)}`}>
-                    {analysisResult.lipScore}
+                  <div className={`text-3xl font-bold ${getScoreColor(analysisResult.details?.detailedFeedback?.lipScore || 0)}`}>
+                    {analysisResult.details?.detailedFeedback?.lipScore || 0}
                   </div>
                   <div className="text-sm text-muted-foreground mt-2">
-                    {analysisResult.lipFeedback}
+                    {analysisResult.details?.detailedFeedback?.lipFeedback || '분석 중...'}
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Expert Tips */}
+          {/* 전문가 팁 */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
@@ -199,7 +197,7 @@ export default function AnalysisResultPage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-3">
-                {analysisResult.expertTips.map((tip, index) => (
+                {(analysisResult.details?.detailedFeedback?.expertTips || []).map((tip: string, index: number) => (
                   <li key={index} className="flex items-start space-x-3">
                     <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <span className="text-xs font-bold text-primary">{index + 1}</span>
@@ -211,7 +209,7 @@ export default function AnalysisResultPage() {
             </CardContent>
           </Card>
 
-          {/* Improvements */}
+          {/* 개선사항 */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
@@ -221,7 +219,7 @@ export default function AnalysisResultPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {analysisResult.improvements.map((improvement, index) => (
+                {(analysisResult.details?.detailedFeedback?.improvements || []).map((improvement: any, index: number) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div>
                       <div className="font-medium">{improvement.category}</div>
@@ -240,22 +238,52 @@ export default function AnalysisResultPage() {
             </CardContent>
           </Card>
 
+          {/* 분석 상세 정보 */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Target className="h-5 w-5" />
+                <span>분석 상세 정보</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <div className="font-medium mb-2">분석 ID</div>
+                  <div className="text-sm text-muted-foreground">{analysisResult.id}</div>
+                </div>
+                <div>
+                  <div className="font-medium mb-2">분석 시간</div>
+                  <div className="text-sm text-muted-foreground">
+                    {new Date(analysisResult.details?.timestamp || Date.now()).toLocaleString()}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-medium mb-2">분석된 이미지 수</div>
+                  <div className="text-sm text-muted-foreground">
+                    {analysisResult.details?.analyses?.length || 1}개
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              variant="outline"
-              onClick={() => router.push('/')}
-              className="px-8 py-3"
-            >
-              홈으로 돌아가기
-            </Button>
-            <Button
-              onClick={handleExpertMatching}
-              className="lumina-button px-8 py-3 text-lg font-semibold"
-            >
-              <MessageCircle className="mr-2 h-5 w-5" />
-              전문가 피드백 받기
-            </Button>
+          <Button
+            variant="outline"
+            onClick={() => router.push('/')}
+            className="px-8 py-3 hover:scale-110 active:scale-95 transition-all duration-200 hover:bg-secondary/80 hover:shadow-lg border-2 hover:border-primary/50"
+          >
+            홈으로 돌아가기
+          </Button>
+          <Button
+            onClick={handleExpertMatching}
+            className="lumina-button px-8 py-3 text-lg font-semibold hover:scale-110 active:scale-95 transition-all duration-200 shadow-lg hover:shadow-2xl hover:brightness-110"
+          >
+            <MessageCircle className="mr-2 h-5 w-5" />
+            전문가 피드백 받기
+          </Button>
           </div>
         </div>
       </div>

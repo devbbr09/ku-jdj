@@ -29,27 +29,89 @@ export async function analyzeFace(imageUrl: string): Promise<FaceAnalysisResult>
   try {
     console.log('Google Cloud Vision API 호출 시작:', imageUrl)
     
-    // 결제 설정이 완료될 때까지 Mock 데이터 반환
-    console.log('Google Cloud Vision API 결제 설정이 완료될 때까지 Mock 데이터를 반환합니다.')
+    // 이미지 다운로드
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`이미지 다운로드 실패: ${response.status}`);
+    }
+    const imageBuffer = await response.arrayBuffer();
+    
+    // 실제 API 호출 (Buffer 사용)
+    const [faceResult] = await client.faceDetection(Buffer.from(imageBuffer))
+    const [landmarkResult] = await client.faceDetection(Buffer.from(imageBuffer))
+
+    console.log('Vision API 응답:', { faceResult, landmarkResult })
+
+    if (!faceResult.faceAnnotations || faceResult.faceAnnotations.length === 0) {
+      return {
+        faceDetected: false,
+        faceCount: 0,
+        faceLandmarks: [],
+        faceAttributes: {
+          joy: 0,
+          sorrow: 0,
+          anger: 0,
+          surprise: 0,
+          confidence: 0
+        },
+        faceBounds: []
+      }
+    }
+
+    const faces = faceResult.faceAnnotations
+    const landmarks = landmarkResult.faceAnnotations || []
+
+    // 얼굴 속성 분석
+    const faceAttributes = faces.map(face => ({
+      joy: face.joyLikelihood === 'VERY_LIKELY' ? 1 : 
+           face.joyLikelihood === 'LIKELY' ? 0.8 :
+           face.joyLikelihood === 'POSSIBLE' ? 0.6 : 0,
+      sorrow: face.sorrowLikelihood === 'VERY_LIKELY' ? 1 : 
+              face.sorrowLikelihood === 'LIKELY' ? 0.8 :
+              face.sorrowLikelihood === 'POSSIBLE' ? 0.6 : 0,
+      anger: face.angerLikelihood === 'VERY_LIKELY' ? 1 : 
+             face.angerLikelihood === 'LIKELY' ? 0.8 :
+             face.angerLikelihood === 'POSSIBLE' ? 0.6 : 0,
+      surprise: face.surpriseLikelihood === 'VERY_LIKELY' ? 1 : 
+                face.surpriseLikelihood === 'LIKELY' ? 0.8 :
+                face.surpriseLikelihood === 'POSSIBLE' ? 0.6 : 0,
+      confidence: face.detectionConfidence || 0
+    }))
+
+    // 얼굴 경계 박스
+    const faceBounds = faces.map(face => {
+      const vertices = face.boundingPoly?.vertices || []
+      if (vertices.length < 2) return { x: 0, y: 0, width: 0, height: 0 }
+      
+      const x = vertices[0].x || 0
+      const y = vertices[0].y || 0
+      const width = (vertices[1].x || 0) - x
+      const height = (vertices[1].y || 0) - y
+      
+      return { x, y, width, height }
+    })
+
+    // 평균 속성 계산
+    const avgAttributes = faceAttributes.reduce((acc, attr) => ({
+      joy: acc.joy + attr.joy,
+      sorrow: acc.sorrow + attr.sorrow,
+      anger: acc.anger + attr.anger,
+      surprise: acc.surprise + attr.surprise,
+      confidence: acc.confidence + attr.confidence
+    }), { joy: 0, sorrow: 0, anger: 0, surprise: 0, confidence: 0 })
+
+    const faceCount = faces.length
+    Object.keys(avgAttributes).forEach(key => {
+      avgAttributes[key as keyof typeof avgAttributes] /= faceCount
+    })
+
     return {
       faceDetected: true,
-      faceCount: 1,
-      faceLandmarks: [],
-      faceAttributes: {
-        joy: 0.7,
-        sorrow: 0.2,
-        anger: 0.1,
-        surprise: 0.3,
-        confidence: 0.8
-      },
-      faceBounds: [{ x: 100, y: 100, width: 200, height: 200 }]
+      faceCount,
+      faceLandmarks: landmarks,
+      faceAttributes: avgAttributes,
+      faceBounds
     }
-    
-    // 실제 API 호출 (결제 설정 완료 후 활성화)
-    // const [faceResult] = await client.faceDetection(imageUrl)
-    // const [landmarkResult] = await client.faceDetection(imageUrl, {
-    //   features: ['LANDMARKS']
-    // })
 
   } catch (error) {
     console.error('Google Cloud Vision API 오류:', error)
@@ -80,25 +142,25 @@ export async function analyzeImageContent(imageUrl: string) {
   try {
     console.log('이미지 내용 분석 시작:', imageUrl)
     
-    // 결제 설정이 완료될 때까지 Mock 데이터 반환
-    console.log('Google Cloud Vision API 결제 설정이 완료될 때까지 Mock 데이터를 반환합니다.')
-    return {
-      labels: [
-        { description: 'Face', score: 0.95 },
-        { description: 'Person', score: 0.90 },
-        { description: 'Portrait', score: 0.85 }
-      ],
-      text: [],
-      colors: [
-        { color: { red: 255, green: 200, blue: 180 }, score: 0.8 },
-        { color: { red: 200, green: 150, blue: 120 }, score: 0.6 }
-      ]
+    // 이미지 다운로드
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`이미지 다운로드 실패: ${response.status}`);
     }
+    const imageBuffer = await response.arrayBuffer();
     
-    // 실제 API 호출 (결제 설정 완료 후 활성화)
-    // const [labelResult] = await client.labelDetection(imageUrl)
-    // const [textResult] = await client.textDetection(imageUrl)
-    // const [colorResult] = await client.imageProperties(imageUrl)
+    // 실제 API 호출 (Buffer 사용)
+    const [labelResult] = await client.labelDetection(Buffer.from(imageBuffer))
+    const [textResult] = await client.textDetection(Buffer.from(imageBuffer))
+    const [colorResult] = await client.imageProperties(Buffer.from(imageBuffer))
+    
+    console.log('이미지 분석 결과:', { labelResult, textResult, colorResult })
+    
+    return {
+      labels: labelResult.labelAnnotations || [],
+      text: textResult.textAnnotations || [],
+      colors: colorResult.imagePropertiesAnnotation?.dominantColors?.colors || []
+    }
     
   } catch (error) {
     console.error('이미지 내용 분석 오류:', error)

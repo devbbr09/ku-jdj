@@ -93,13 +93,17 @@ export default function ExpertCard({ expert, onMatch, onFavorite, isFavorite = f
         <div className="flex gap-2 pt-2">
           <Button
             onClick={() => onMatch(expert)}
-            className="flex-1 lumina-button"
+            className="flex-1 lumina-button hover:scale-105 active:scale-95 transition-all duration-200 hover:shadow-lg hover:brightness-110"
           >
             <MessageCircle className="h-4 w-4 mr-2" />
             매칭 신청
           </Button>
           {expert.isOfflineAvailable && (
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="hover:scale-105 active:scale-95 transition-all duration-200 hover:bg-primary/10 hover:border-primary/50 hover:shadow-md"
+            >
               <MapPin className="h-4 w-4 mr-1" />
               오프라인
             </Button>

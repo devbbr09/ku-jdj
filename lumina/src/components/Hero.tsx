@@ -36,7 +36,7 @@ export default function Hero({ onAnalyzeClick, onExpertsClick }: HeroProps) {
             <Button 
               onClick={onAnalyzeClick}
               size="lg"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-2xl hover:scale-110 active:scale-95 transition-all duration-200 hover:brightness-110"
             >
               <Sparkles className="mr-2 h-5 w-5" />
               AI 진단 시작하기
@@ -45,7 +45,7 @@ export default function Hero({ onAnalyzeClick, onExpertsClick }: HeroProps) {
               variant="outline" 
               size="lg"
               onClick={onExpertsClick}
-              className="px-8 py-4 text-lg font-semibold rounded-full border-2 hover:bg-primary/10 transition-all duration-300"
+              className="px-8 py-4 text-lg font-semibold rounded-full border-2 hover:bg-primary/20 hover:scale-110 active:scale-95 transition-all duration-200 hover:shadow-lg hover:border-primary/50"
             >
               전문가 둘러보기
               <ArrowRight className="ml-2 h-5 w-5" />
