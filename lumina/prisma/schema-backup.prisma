@@ -1,0 +1,148 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 사용자 모델
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 관계
+  analyses     Analysis[]
+  favorites    Favorite[]
+  matchings    Matching[]
+  expertProfile ExpertProfile?
+
+  @@map("users")
+}
+
+// 메이크업 스타일 모델
+model MakeupStyle {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  image       String?
+  tags        String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 관계
+  favorites Favorite[]
+  analyses  Analysis[]
+
+  @@map("makeup_styles")
+}
+
+// AI 분석 결과 모델
+model Analysis {
+  id        String   @id @default(cuid())
+  userId    String
+  styleId   String?
+  imageUrl  String
+  score     Int      // 전체 점수 (0-100)
+  feedback  String   // AI 피드백
+  details   Json     // 상세 분석 결과 (JSON)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 관계
+  user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  style MakeupStyle? @relation(fields: [styleId], references: [id])
+
+  @@map("analyses")
+}
+
+// 즐겨찾기 모델
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  styleId   String
+  createdAt DateTime @default(now())
+
+  // 관계
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  style MakeupStyle @relation(fields: [styleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, styleId])
+  @@map("favorites")
+}
+
+// 전문가 모델
+model Expert {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  phone       String?
+  description String
+  specialties String[] // 전문 분야
+  experience  Int      // 경력 (년)
+  rating      Float    @default(0)
+  reviewCount Int       @default(0)
+  price       Int      // 상담료 (원)
+  image       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 관계
+  matchings Matching[]
+  profile   ExpertProfile?
+
+  @@map("experts")
+}
+
+// 전문가 프로필 모델 (사용자가 전문가로 등록한 경우)
+model ExpertProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  expertId  String   @unique
+  bio       String?
+  portfolio String[] // 포트폴리오 이미지들
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 관계
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expert Expert @relation(fields: [expertId], references: [id], onDelete: Cascade)
+
+  @@map("expert_profiles")
+}
+
+// 매칭 신청 모델
+model Matching {
+  id        String      @id @default(cuid())
+  userId    String
+  expertId  String
+  status    MatchingStatus @default(PENDING)
+  message   String?
+  response  String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  // 관계
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expert Expert @relation(fields: [expertId], references: [id], onDelete: Cascade)
+
+  @@map("matchings")
+}
+
+// 매칭 상태 열거형
+enum MatchingStatus {
+  PENDING   // 대기중
+  ACCEPTED  // 승인됨
+  REJECTED  // 거절됨
+  COMPLETED // 완료됨
+  CANCELLED // 취소됨
+}
