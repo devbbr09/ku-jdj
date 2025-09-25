@@ -5,9 +5,10 @@ import { Sparkles, ArrowRight } from 'lucide-react';
 
 interface HeroProps {
   onAnalyzeClick: () => void;
+  onExpertsClick: () => void;
 }
 
-export default function Hero({ onAnalyzeClick }: HeroProps) {
+export default function Hero({ onAnalyzeClick, onExpertsClick }: HeroProps) {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-background via-secondary/20 to-primary/10 py-20 md:py-32">
       <div className="container mx-auto px-4">
@@ -43,6 +44,7 @@ export default function Hero({ onAnalyzeClick }: HeroProps) {
             <Button 
               variant="outline" 
               size="lg"
+              onClick={onExpertsClick}
               className="px-8 py-4 text-lg font-semibold rounded-full border-2 hover:bg-primary/10 transition-all duration-300"
             >
               전문가 둘러보기

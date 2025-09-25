@@ -1,13 +1,12 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, User } from 'lucide-react';
 
-interface HeaderProps {
-  onAnalyzeClick: () => void;
-}
+export default function Header() {
+  const router = useRouter();
 
-export default function Header({ onAnalyzeClick }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
@@ -21,26 +20,17 @@ export default function Header({ onAnalyzeClick }: HeaderProps) {
           </span>
         </div>
 
-        {/* Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <a href="#trends" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            트렌드
-          </a>
-          <a href="#experts" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            전문가
-          </a>
-          <a href="#about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            소개
-          </a>
-        </nav>
-
-        {/* CTA Button */}
-        <Button 
-          onClick={onAnalyzeClick}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-2 rounded-full font-medium"
-        >
-          AI 진단받기
-        </Button>
+        {/* User Actions */}
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="ghost"
+            onClick={() => router.push('/profile')}
+            className="flex items-center space-x-2"
+          >
+            <User className="h-4 w-4" />
+            <span className="hidden sm:inline">마이페이지</span>
+          </Button>
+        </div>
       </div>
     </header>
   );

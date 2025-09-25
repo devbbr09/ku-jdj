@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import MakeupStyleCard from '@/components/MakeupStyleCard';
@@ -9,12 +10,16 @@ import { makeupStyles } from '@/lib/data/makeupStyles';
 import { MakeupStyle } from '@/types';
 
 export default function Home() {
+  const router = useRouter();
   const [selectedStyle, setSelectedStyle] = useState<MakeupStyle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleAnalyzeClick = () => {
-    // TODO: Navigate to AI analysis page
-    console.log('AI 분석 페이지로 이동');
+    router.push('/analyze');
+  };
+
+  const handleExpertsClick = () => {
+    router.push('/experts');
   };
 
   const handleStyleClick = (style: MakeupStyle) => {
@@ -29,10 +34,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onAnalyzeClick={handleAnalyzeClick} />
+      <Header />
       
       <main>
-        <Hero onAnalyzeClick={handleAnalyzeClick} />
+        <Hero onAnalyzeClick={handleAnalyzeClick} onExpertsClick={handleExpertsClick} />
         
         {/* Trends Section */}
         <section id="trends" className="py-16 md:py-24">
