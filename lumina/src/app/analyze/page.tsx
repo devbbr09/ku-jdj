@@ -132,27 +132,6 @@ export default function AnalyzePage() {
 
   // 로딩 상태일 때 로딩 화면 표시
   console.log('렌더링 시 isAnalyzing 상태:', isAnalyzing);
-  if (isAnalyzing) {
-    console.log('로딩 화면 표시 중...');
-    return (
-      <div className="fixed inset-0 bg-transparent z-[9999] flex items-center justify-center">
-        <div className="bg-white/90 backdrop-blur-md rounded-2xl p-8 shadow-2xl max-w-sm mx-4 border border-pink-200/50">
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-pink-400 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
-              <Sparkles className="h-8 w-8 text-white animate-spin" />
-            </div>
-            <h2 className="text-xl font-bold mb-2 text-gray-800">AI 분석중...</h2>
-            <p className="text-gray-600 text-sm">잠시만 기다려주세요</p>
-            <div className="mt-4 flex justify-center space-x-1">
-              <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-              <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -294,6 +273,26 @@ export default function AnalyzePage() {
           </div>
         </div>
       </div>
+
+      {/* Analysis Modal */}
+      {isAnalyzing && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4">
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-pink-400 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
+                <Sparkles className="h-8 w-8 text-white animate-spin" />
+              </div>
+              <h2 className="text-xl font-bold mb-2 text-gray-800">AI 분석중...</h2>
+              <p className="text-gray-600 text-sm mb-4">잠시만 기다려주세요</p>
+              <div className="flex justify-center space-x-1">
+                <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeFace, analyzeImageContent } from '@/lib/googleVision';
 import { analysisService } from '@/lib/database';
-import { generateMakeupFeedback, generateOverallFeedback } from '@/lib/openai';
+import { generateMakeupAnalysis, generateOverallAnalysis } from '@/lib/gemini';
 
 // AI 피드백 생성 함수 (임시 - 나중에 OpenAI로 대체)
 function generateFeedback(faceAnalysis: any, imageContent: any, score: number): string {
@@ -21,46 +21,72 @@ function generateFeedback(faceAnalysis: any, imageContent: any, score: number): 
 // OpenAI를 사용한 고급 피드백 생성 함수
 async function generateAdvancedFeedback(analyses: any[], score: number, mainImageUrl: string): Promise<any> {
   try {
-    // OpenAI API 키가 있는 경우 고급 피드백 생성
-    if (process.env.OPENAI_API_KEY) {
-      console.log('OpenAI를 사용한 고급 피드백 생성 시작');
+    // Google API 키가 있는 경우 고급 피드백 생성
+    if (process.env.GOOGLE_API_KEY) {
+      console.log('Gemini를 사용한 고급 피드백 생성 시작');
       
-      // 각 영역별 점수 계산
-      const eyeScore = calculateEyeScore(analyses.find(a => a.type === 'makeup'), analyses.find(a => a.type === 'bareFace'), analyses.find(a => a.type === 'reference'));
-      const baseScore = calculateBaseScore(analyses.find(a => a.type === 'makeup'), analyses.find(a => a.type === 'bareFace'), analyses.find(a => a.type === 'reference'));
-      const lipScore = calculateLipScore(analyses.find(a => a.type === 'makeup'), analyses.find(a => a.type === 'bareFace'), analyses.find(a => a.type === 'reference'));
+      // Gemini가 점수를 계산하므로 기존 점수 계산 로직 제거
       
-      // OpenAI로 개별 피드백 생성
-      const [eyeFeedback, baseFeedback, lipFeedback, overallFeedback] = await Promise.all([
-        generateMakeupFeedback({ imageUrl: mainImageUrl, analysisType: 'eye' }),
-        generateMakeupFeedback({ imageUrl: mainImageUrl, analysisType: 'base' }),
-        generateMakeupFeedback({ imageUrl: mainImageUrl, analysisType: 'lip' }),
-        generateOverallFeedback(mainImageUrl, { eyeScore, baseScore, lipScore, overallScore: score })
+      // Vision AI 분석 결과 수집
+      const visionAnalysis = {
+        makeup: analyses.find(a => a.type === 'makeup'),
+        bareFace: analyses.find(a => a.type === 'bareFace'),
+        reference: analyses.find(a => a.type === 'reference')
+      };
+
+      // Gemini로 개별 분석 (점수 + 피드백)
+      const [eyeAnalysis, baseAnalysis, lipAnalysis, overallAnalysis] = await Promise.all([
+        generateMakeupAnalysis({ 
+          imageUrl: mainImageUrl, 
+          analysisType: 'eye',
+          visionAnalysis: visionAnalysis.makeup
+        }),
+        generateMakeupAnalysis({ 
+          imageUrl: mainImageUrl, 
+          analysisType: 'base',
+          visionAnalysis: visionAnalysis.makeup
+        }),
+        generateMakeupAnalysis({ 
+          imageUrl: mainImageUrl, 
+          analysisType: 'lip',
+          visionAnalysis: visionAnalysis.makeup
+        }),
+        generateOverallAnalysis(mainImageUrl, visionAnalysis)
       ]);
       
-      // 전문가 팁과 개선사항은 기존 로직 사용
-      const expertTips = generateExpertTips(analyses.find(a => a.type === 'makeup'), analyses.find(a => a.type === 'bareFace'), analyses.find(a => a.type === 'reference'));
-      const improvements = generateImprovements(eyeScore, baseScore, lipScore);
+      // Gemini에서 받은 점수와 피드백 사용
+      const eyeScore = eyeAnalysis.score;
+      const baseScore = baseAnalysis.score;
+      const lipScore = lipAnalysis.score;
+      const overallScore = overallAnalysis.score;
+      
+      // 전문가 팁은 Gemini에서 받은 개선사항 사용
+      const expertTips = [
+        ...eyeAnalysis.improvements || [],
+        ...baseAnalysis.improvements || [],
+        ...lipAnalysis.improvements || [],
+        ...overallAnalysis.improvements || []
+      ].slice(0, 3); // 최대 3개만 표시
       
       return {
-        overallScore: score,
+        overallScore,
         eyeScore,
         baseScore,
         lipScore,
-        eyeFeedback,
-        baseFeedback,
-        lipFeedback,
-        overallFeedback,
+        eyeFeedback: eyeAnalysis.feedback,
+        baseFeedback: baseAnalysis.feedback,
+        lipFeedback: lipAnalysis.feedback,
+        overallFeedback: overallAnalysis.feedback,
         expertTips,
-        improvements
+        improvements: overallAnalysis.improvements || []
       };
     } else {
-      // OpenAI API 키가 없는 경우 기존 로직 사용
-      console.log('OpenAI API 키가 없어 기본 피드백 생성 사용');
+      // Google API 키가 없는 경우 기존 로직 사용
+      console.log('Google API 키가 없어 기본 피드백 생성 사용');
       return generateComparativeFeedback(analyses, score);
     }
   } catch (error) {
-    console.error('OpenAI 피드백 생성 오류:', error);
+      console.error('Gemini 피드백 생성 오류:', error);
     // 오류 발생 시 기존 로직으로 fallback
     return generateComparativeFeedback(analyses, score);
   }

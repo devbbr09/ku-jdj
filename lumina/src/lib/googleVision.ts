@@ -29,16 +29,24 @@ export async function analyzeFace(imageUrl: string): Promise<FaceAnalysisResult>
   try {
     console.log('Google Cloud Vision API 호출 시작:', imageUrl)
     
-    // 이미지 다운로드
-    const response = await fetch(imageUrl);
-    if (!response.ok) {
-      throw new Error(`이미지 다운로드 실패: ${response.status}`);
-    }
-    const imageBuffer = await response.arrayBuffer();
+    // 이미지 URL을 직접 사용하여 API 호출
+    const image = {
+      source: {
+        imageUri: imageUrl
+      }
+    };
     
-    // 실제 API 호출 (Buffer 사용)
-    const [faceResult] = await client.faceDetection(Buffer.from(imageBuffer))
-    const [landmarkResult] = await client.faceDetection(Buffer.from(imageBuffer))
+    const request = {
+      image: image,
+      features: [
+        { type: 'FACE_DETECTION', maxResults: 10 },
+        { type: 'LANDMARK_DETECTION', maxResults: 10 }
+      ]
+    };
+    
+    // 실제 API 호출
+    const [faceResult] = await client.annotateImage(request)
+    const [landmarkResult] = await client.annotateImage(request)
 
     console.log('Vision API 응답:', { faceResult, landmarkResult })
 
@@ -142,17 +150,26 @@ export async function analyzeImageContent(imageUrl: string) {
   try {
     console.log('이미지 내용 분석 시작:', imageUrl)
     
-    // 이미지 다운로드
-    const response = await fetch(imageUrl);
-    if (!response.ok) {
-      throw new Error(`이미지 다운로드 실패: ${response.status}`);
-    }
-    const imageBuffer = await response.arrayBuffer();
+    // 이미지 URL을 직접 사용하여 API 호출
+    const image = {
+      source: {
+        imageUri: imageUrl
+      }
+    };
     
-    // 실제 API 호출 (Buffer 사용)
-    const [labelResult] = await client.labelDetection(Buffer.from(imageBuffer))
-    const [textResult] = await client.textDetection(Buffer.from(imageBuffer))
-    const [colorResult] = await client.imageProperties(Buffer.from(imageBuffer))
+    const request = {
+      image: image,
+      features: [
+        { type: 'LABEL_DETECTION', maxResults: 10 },
+        { type: 'TEXT_DETECTION', maxResults: 10 },
+        { type: 'IMAGE_PROPERTIES' }
+      ]
+    };
+    
+    // 실제 API 호출
+    const [labelResult] = await client.annotateImage(request)
+    const [textResult] = await client.annotateImage(request)
+    const [colorResult] = await client.annotateImage(request)
     
     console.log('이미지 분석 결과:', { labelResult, textResult, colorResult })
     
