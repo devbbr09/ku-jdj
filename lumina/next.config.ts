@@ -7,16 +7,8 @@ const nextConfig: NextConfig = {
     formats: ['image/webp', 'image/avif'],
   },
   
-  // 성능 최적화
-  experimental: {
-    optimizeCss: true,
-  },
-  
   // 압축 설정
   compress: true,
-  
-  // 빌드 최적화
-  swcMinify: true,
 };
 
 export default nextConfig;
