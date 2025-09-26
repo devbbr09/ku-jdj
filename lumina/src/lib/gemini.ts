@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI, Part } from '@google/generative-ai';
-import { analyzeImage, VisionAnalysisResult } from './vision-ai';
+import { analyzeImage, VisionAnalysisResult } from './googleVision';
 
 // 환경 변수 검증
 const apiKey = process.env.GOOGLE_API_KEY;

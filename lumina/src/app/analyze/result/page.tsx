@@ -208,12 +208,23 @@ export default function AnalysisResultPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {(analysisResult.details?.detailedFeedback?.improvements || []).map((improvement: string, index: number) => (
+                {(analysisResult.details?.detailedFeedback?.improvements || []).map((improvement: any, index: number) => (
                   <div key={index} className="flex items-start space-x-3 p-3 bg-muted/50 rounded-lg">
                     <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <span className="text-xs font-bold text-orange-600">!</span>
                     </div>
-                    <span className="text-sm">{improvement}</span>
+                    <div className="flex-1">
+                      {typeof improvement === 'string' ? (
+                        <span className="text-sm">{improvement}</span>
+                      ) : (
+                        <div>
+                          <div className="text-sm font-medium">{improvement.suggestion}</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {improvement.category} • 우선순위: {improvement.priority === 'high' ? '높음' : improvement.priority === 'medium' ? '보통' : '낮음'}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

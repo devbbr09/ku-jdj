@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyzeFace, analyzeImageContent } from '@/lib/googleVision';
+import { analyzeImage } from '@/lib/googleVision';
 import { analysisService } from '@/lib/database';
-import { generateMakeupAnalysis, generateOverallAnalysis } from '@/lib/gemini';
+import { generateMakeupAnalysis } from '@/lib/gemini';
 
 // AI 피드백 생성 함수 (임시 - 나중에 OpenAI로 대체)
 function generateFeedback(faceAnalysis: any, imageContent: any, score: number): string {
@@ -37,21 +37,29 @@ async function generateAdvancedFeedback(analyses: any[], score: number, mainImag
       // Gemini로 개별 분석 (점수 + 피드백)
       const [eyeAnalysis, baseAnalysis, lipAnalysis, overallAnalysis] = await Promise.all([
         generateMakeupAnalysis({ 
-          imageUrl: mainImageUrl, 
-          analysisType: 'eye',
-          visionAnalysis: visionAnalysis.makeup
+          barefaceImageUrl: visionAnalysis.bareFace?.imageUrl,
+          makeupImageUrl: mainImageUrl, 
+          referenceImageUrl: visionAnalysis.reference?.imageUrl,
+          analysisType: 'eye'
         }),
         generateMakeupAnalysis({ 
-          imageUrl: mainImageUrl, 
-          analysisType: 'base',
-          visionAnalysis: visionAnalysis.makeup
+          barefaceImageUrl: visionAnalysis.bareFace?.imageUrl,
+          makeupImageUrl: mainImageUrl, 
+          referenceImageUrl: visionAnalysis.reference?.imageUrl,
+          analysisType: 'base'
         }),
         generateMakeupAnalysis({ 
-          imageUrl: mainImageUrl, 
-          analysisType: 'lip',
-          visionAnalysis: visionAnalysis.makeup
+          barefaceImageUrl: visionAnalysis.bareFace?.imageUrl,
+          makeupImageUrl: mainImageUrl, 
+          referenceImageUrl: visionAnalysis.reference?.imageUrl,
+          analysisType: 'lip'
         }),
-        generateOverallAnalysis(mainImageUrl, visionAnalysis)
+        generateMakeupAnalysis({ 
+          barefaceImageUrl: visionAnalysis.bareFace?.imageUrl,
+          makeupImageUrl: mainImageUrl, 
+          referenceImageUrl: visionAnalysis.reference?.imageUrl,
+          analysisType: 'overall'
+        })
       ]);
       
       // Gemini에서 받은 점수와 피드백 사용
@@ -480,24 +488,21 @@ export async function POST(request: NextRequest) {
     const analyses = [];
     
     // 1. 민낯 사진 분석
-    const bareFaceAnalysis = await analyzeFace(imageUrl);
-    const bareFaceContent = await analyzeImageContent(imageUrl);
-    analyses.push({ type: 'bareFace', faceAnalysis: bareFaceAnalysis, imageContent: bareFaceContent });
+    const bareFaceAnalysis = await analyzeImage(imageUrl);
+    analyses.push({ type: 'bareFace', faceAnalysis: bareFaceAnalysis, imageContent: bareFaceAnalysis });
     console.log('민낯 사진 분석 완료');
 
     // 2. 메이크업 사진 분석 (있는 경우)
     if (additionalImages?.makeup) {
-      const makeupAnalysis = await analyzeFace(additionalImages.makeup);
-      const makeupContent = await analyzeImageContent(additionalImages.makeup);
-      analyses.push({ type: 'makeup', faceAnalysis: makeupAnalysis, imageContent: makeupContent });
+      const makeupAnalysis = await analyzeImage(additionalImages.makeup);
+      analyses.push({ type: 'makeup', faceAnalysis: makeupAnalysis, imageContent: makeupAnalysis });
       console.log('메이크업 사진 분석 완료');
     }
 
     // 3. 레퍼런스 사진 분석 (있는 경우)
     if (additionalImages?.reference) {
-      const referenceAnalysis = await analyzeFace(additionalImages.reference);
-      const referenceContent = await analyzeImageContent(additionalImages.reference);
-      analyses.push({ type: 'reference', faceAnalysis: referenceAnalysis, imageContent: referenceContent });
+      const referenceAnalysis = await analyzeImage(additionalImages.reference);
+      analyses.push({ type: 'reference', faceAnalysis: referenceAnalysis, imageContent: referenceAnalysis });
       console.log('레퍼런스 사진 분석 완료');
     }
 
