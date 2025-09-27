@@ -1,4 +1,5 @@
 import { ImageAnnotatorClient } from '@google-cloud/vision';
+import { protos } from '@google-cloud/vision';
 
 // Google Cloud Vision 클라이언트 초기화
 const client = new ImageAnnotatorClient({
@@ -14,10 +15,13 @@ export interface FaceAttributes {
   confidence: number;
 }
 
+// Vision API의 IColorInfo 형식에 맞게 DominantColor 인터페이스 수정
 export interface DominantColor {
-  red: number;
-  green: number;
-  blue: number;
+  color: {
+    red: number;
+    green: number;
+    blue: number;
+  };
   pixelFraction: number;
   score: number;
 }
@@ -32,12 +36,12 @@ export interface BoundingBox {
 export interface VisionAnalysisResult {
   faceDetected: boolean;
   faceCount: number;
-  faceLandmarks?: any[];
+  faceLandmarks?: protos.google.cloud.vision.v1.FaceAnnotation.ILandmark[] | null;
   faceAttributes?: FaceAttributes;
-  faceBounds?: BoundingBox[]; // `any[]`에서 `BoundingBox[]`로 수정
-  labels?: any[];
-  dominantColors?: DominantColor[];
-  text?: any[];
+  faceBounds?: BoundingBox[];
+  labels?: protos.google.cloud.vision.v1.IEntityAnnotation[] | null;
+  dominantColors?: DominantColor[] | null;
+  text?: protos.google.cloud.vision.v1.IEntityAnnotation[] | null;
 }
 
 /**
@@ -81,7 +85,7 @@ export async function analyzeImage(imageUrl: string): Promise<VisionAnalysisResu
         faceAttributes: undefined,
         faceBounds: [],
         labels: result.labelAnnotations || [],
-        dominantColors: result.imagePropertiesAnnotation?.dominantColors?.colors || [],
+        dominantColors: result.imagePropertiesAnnotation?.dominantColors?.colors as DominantColor[] || [],
         text: result.textAnnotations || [],
       };
     }
@@ -94,7 +98,7 @@ export async function analyzeImage(imageUrl: string): Promise<VisionAnalysisResu
       const vertices = face.boundingPoly?.vertices || [];
       if (vertices.length >= 2) {
         const width = (vertices[1].x || 0) - (vertices[0].x || 0);
-        const height = (vertices[2]?.y || 0) - (vertices[0]?.y || 0); // `vertices[2]` 존재 여부 확인
+        const height = (vertices[2]?.y || 0) - (vertices[0]?.y || 0);
         const area = width * height;
 
         if (area > maxArea) {
@@ -104,7 +108,9 @@ export async function analyzeImage(imageUrl: string): Promise<VisionAnalysisResu
       }
     });
 
-    // 선택된 단일 얼굴에 대한 데이터만 추출
+    // 선택된 단일 얼굴에 대한 데이터 추출 및 가공
+    
+    // (A) 얼굴 감정 속성 추출
     const faceAttributes: FaceAttributes = {
       joy: targetFace.joyLikelihood === 'VERY_LIKELY' ? 1 : targetFace.joyLikelihood === 'LIKELY' ? 0.8 : targetFace.joyLikelihood === 'POSSIBLE' ? 0.6 : 0,
       sorrow: targetFace.sorrowLikelihood === 'VERY_LIKELY' ? 1 : targetFace.sorrowLikelihood === 'LIKELY' ? 0.8 : targetFace.sorrowLikelihood === 'POSSIBLE' ? 0.6 : 0,
@@ -113,6 +119,7 @@ export async function analyzeImage(imageUrl: string): Promise<VisionAnalysisResu
       confidence: targetFace.detectionConfidence || 0,
     };
 
+    // (B) 얼굴 경계 박스 계산 (x, y, width, height)
     const faceBounds: BoundingBox[] = [
       {
         x: targetFace.boundingPoly?.vertices[0]?.x || 0,
@@ -122,17 +129,26 @@ export async function analyzeImage(imageUrl: string): Promise<VisionAnalysisResu
       },
     ];
 
-    const faceLandmarks = targetFace.landmarks || [];
+    // (C) 눈과 눈썹 관련 랜드마크만 필터링
+    const rawLandmarks = targetFace.landmarks || [];
+    const eyeAndBrowLandmarks = rawLandmarks.filter(landmark => {
+      // landmark.type이 Enum이므로 toString()을 사용하여 includes() 호출
+      const typeString = landmark.type?.toString() || '';
+      return typeString.includes('EYE') || typeString.includes('BROW') || typeString.includes('PUPIL');
+    });
+
+    // (D) 기타 이미지 속성
     const labels = result.labelAnnotations || [];
-    const dominantColors = result.imagePropertiesAnnotation?.dominantColors?.colors || [];
+    // `as DominantColor[]`를 사용해 타입 강제 변환 (안정성 확보)
+    const dominantColors = result.imagePropertiesAnnotation?.dominantColors?.colors as DominantColor[] || [];
     const text = result.textAnnotations || [];
 
     console.log('Vision API 응답 파싱 완료');
 
     return {
       faceDetected: true,
-      faceCount: 1, // 단일 얼굴을 반환하므로 count를 1로 고정
-      faceLandmarks,
+      faceCount: 1, // 가장 중요한 얼굴 하나만 반환
+      faceLandmarks: eyeAndBrowLandmarks, // 정제된 랜드마크
       faceAttributes,
       faceBounds,
       labels,
@@ -142,10 +158,13 @@ export async function analyzeImage(imageUrl: string): Promise<VisionAnalysisResu
   } catch (error) {
     console.error('Google Cloud Vision API 오류:', error);
 
+    // 에러 타입 확인 로직 강화
     if (error instanceof Error && error.message.includes('billing')) {
       throw new Error('API 결제가 활성화되지 않았습니다.');
-    } else {
+    } else if (error instanceof Error) {
       throw new Error('이미지 분석 중 알 수 없는 오류가 발생했습니다. ' + error.message);
+    } else {
+      throw new Error('알 수 없는 오류가 발생했습니다.');
     }
   }
 }
