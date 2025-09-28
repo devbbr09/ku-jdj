@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -75,8 +76,8 @@ export default function AnalysisResultPage() {
         const analyses = result.details?.analyses || [];
         
         // 이미지 URL들 추출
-        const makeupImage = analyses.find((a: any) => a.type === 'makeup')?.imageUrl;
-        const referenceImage = analyses.find((a: any) => a.type === 'reference')?.imageUrl;
+        const makeupImage = analyses.find((a: { type: string; imageUrl?: string }) => a.type === 'makeup')?.imageUrl;
+        const referenceImage = analyses.find((a: { type: string; imageUrl?: string }) => a.type === 'reference')?.imageUrl;
         
         const transformedResult = {
           id: result.id,
@@ -173,20 +174,22 @@ export default function AnalysisResultPage() {
             <div className="grid md:grid-cols-2 gap-6 mb-8">
               {analysisResult.images?.makeup && (
                 <div className="aspect-square relative overflow-hidden rounded-lg">
-                  <img
+                  <Image
                     src={analysisResult.images.makeup}
                     alt="메이크업 사진"
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                   />
                 </div>
               )}
               
               {analysisResult.images?.reference && (
                 <div className="aspect-square relative overflow-hidden rounded-lg">
-                  <img
+                  <Image
                     src={analysisResult.images.reference}
                     alt="레퍼런스 사진"
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                   />
                 </div>
               )}
