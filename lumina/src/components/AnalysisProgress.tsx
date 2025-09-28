@@ -119,7 +119,7 @@ export default function AnalysisProgress({ isVisible }: AnalysisProgressProps) {
         clearTimeout(timeoutId);
       }
     };
-  }, [isVisible]);
+  }, [isVisible, analysisSteps]);
 
   if (!isVisible) return null;
 

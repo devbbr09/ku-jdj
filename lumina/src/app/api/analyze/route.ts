@@ -215,7 +215,7 @@ function calculateEyeScore(makeup: {imageContent: {labels: Array<{description: s
 }
 
 // 베이스 메이크업 점수 계산
-function calculateBaseScore(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, bareFace: unknown, reference: unknown): number {
+function calculateBaseScore(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, _bareFace: unknown, _reference: unknown): number {
   let score = 60; // 기본 점수 (60~100 범위)
   
   if (makeup?.imageContent?.labels) {

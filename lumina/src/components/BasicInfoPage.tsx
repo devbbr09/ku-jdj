@@ -52,7 +52,7 @@ export default function BasicInfoPage() {
     info.eyeDepth;
 
   const handleConfirm = () => {
-    const query = new URLSearchParams(Object.entries(info).filter(([_, value]) => value !== '')).toString();
+    const query = new URLSearchParams(Object.entries(info).filter(([, value]) => value !== '')).toString();
     router.push(`/analyze?${query}`);
   };
 

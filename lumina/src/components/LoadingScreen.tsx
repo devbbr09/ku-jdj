@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Sparkles, Brain, Eye, Palette, MessageCircle } from 'lucide-react';
 
 interface LoadingStep {
@@ -19,7 +19,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
 
-  const steps: LoadingStep[] = [
+  const steps: LoadingStep[] = useMemo(() => [
     {
       id: 'upload',
       title: '이미지 업로드 중...',
@@ -55,7 +55,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
       icon: <MessageCircle className="h-8 w-8" />,
       duration: 1500
     }
-  ];
+  ], []);
 
   useEffect(() => {
     const totalDuration = steps.reduce((sum, step) => sum + step.duration, 0);
