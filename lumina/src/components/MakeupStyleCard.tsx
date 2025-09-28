@@ -63,7 +63,7 @@ export default function MakeupStyleCard({ style, onClick }: MakeupStyleCardProps
           {style.tags.slice(0, 3).map((tag, index) => (
             <span 
               key={index}
-              className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary font-medium"
+              className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700 font-bold"
             >
               #{tag}
             </span>

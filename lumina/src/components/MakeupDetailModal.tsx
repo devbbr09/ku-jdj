@@ -1,6 +1,6 @@
 'use client';
 
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { MakeupStyle } from '@/types';
 import { X, Play, Star, MapPin, Clock, MessageCircle } from 'lucide-react';
@@ -17,6 +17,7 @@ export default function MakeupDetailModal({ style, isOpen, onClose }: MakeupDeta
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+        <DialogTitle className="sr-only">{style.title}</DialogTitle>
         <div className="relative">
           {/* Close Button */}
           <Button

@@ -235,7 +235,7 @@ export default function ExpertsPage() {
                     <Badge
                       key={tag}
                       variant={selectedTags.includes(tag) ? "default" : "outline"}
-                      className="cursor-pointer"
+                      className="cursor-pointer font-bold"
                       onClick={() => handleTagToggle(tag)}
                     >
                       #{tag}

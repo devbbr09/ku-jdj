@@ -17,6 +17,28 @@ export default function AnalyzePage() {
   const [referenceImage, setReferenceImage] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  // 이미지 업로드 시 currentStep 업데이트
+  const handleBareFaceImageSelect = (file: File | null) => {
+    setBareFaceImage(file);
+    if (file) {
+      setCurrentStep(1); // 민낯 사진 업로드 후 메이크업 사진 단계로
+    }
+  };
+
+  const handleMakeupImageSelect = (file: File | null) => {
+    setMakeupImage(file);
+    if (file) {
+      setCurrentStep(2); // 메이크업 사진 업로드 후 레퍼런스 사진 단계로
+    }
+  };
+
+  const handleReferenceImageSelect = (file: File | null) => {
+    setReferenceImage(file);
+    if (file) {
+      setCurrentStep(3); // 모든 사진 업로드 완료
+    }
+  };
+
   const steps = [
     {
       id: 'bare-face',
@@ -148,7 +170,7 @@ export default function AnalyzePage() {
             <span>뒤로가기</span>
           </Button>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 absolute left-1/2 transform -translate-x-1/2">
             <Sparkles className="h-5 w-5 text-primary" />
             <span className="text-lg font-bold">AI 진단</span>
           </div>
@@ -157,22 +179,27 @@ export default function AnalyzePage() {
         </div>
       </div>
 
+      {/* Main Title */}
       <div className="container mx-auto px-4 py-8">
-        {/* Progress Tracker */}
-        <div className="mb-12">
-          <ProgressTracker steps={steps} currentStep={currentStep} />
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">
+            AI 메이크업 진단
+          </h1>
+          <p className="text-lg text-muted-foreground text-center">
+            사진을 업로드하고 AI가 맞춤형 피드백을 제공해드립니다
+          </p>
         </div>
+      </div>
+
+      {/* Progress Tracker */}
+      <div className="py-8 flex justify-center">
+        <ProgressTracker steps={steps} currentStep={currentStep} />
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
 
         {/* Main Content */}
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">
-              AI 메이크업 진단
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              사진을 업로드하고 AI가 맞춤형 피드백을 제공해드립니다
-            </p>
-          </div>
 
           {/* Image Upload Sections */}
           <div className="space-y-8">
@@ -188,7 +215,7 @@ export default function AnalyzePage() {
                 <ImageUpload
                   title="민낯 사진"
                   description="화장하지 않은 본인의 얼굴이 선명하게 보이는 사진을 업로드해주세요. 좋은 조명에서 정면을 바라보는 사진이 가장 정확한 분석이 가능합니다."
-                  onImageSelect={setBareFaceImage}
+                  onImageSelect={handleBareFaceImageSelect}
                   selectedImage={bareFaceImage}
                   required
                 />
@@ -207,7 +234,7 @@ export default function AnalyzePage() {
                 <ImageUpload
                   title="메이크업 사진"
                   description="메이크업을 완성한 후의 사진을 업로드해주세요. 민낯 사진과 동일한 각도와 조명에서 촬영하면 더 정확한 분석이 가능합니다."
-                  onImageSelect={setMakeupImage}
+                  onImageSelect={handleMakeupImageSelect}
                   selectedImage={makeupImage}
                   required
                 />
@@ -226,7 +253,7 @@ export default function AnalyzePage() {
                 <ImageUpload
                   title="레퍼런스 사진"
                   description="목표로 하는 메이크업 스타일의 사진을 업로드해주세요. 유명인, 인플루언서, 또는 원하는 스타일의 메이크업 사진이면 됩니다."
-                  onImageSelect={setReferenceImage}
+                  onImageSelect={handleReferenceImageSelect}
                   selectedImage={referenceImage}
                   required
                 />
@@ -264,7 +291,7 @@ export default function AnalyzePage() {
 
           {/* Tips */}
           <div className="mt-12 bg-secondary/50 rounded-lg p-6">
-            <h3 className="font-semibold mb-4">📸 좋은 사진을 위한 팁</h3>
+            <h3 className="font-semibold mb-4">📸 정확한 진단을 위한 사진을 찍는 팁</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>• 자연광이 있는 곳에서 촬영하세요</li>
               <li>• 얼굴이 화면의 70% 이상을 차지하도록 촬영하세요</li>

@@ -49,14 +49,17 @@ export default function ExpertCard({ expert, onMatch, onFavorite, isFavorite = f
         {/* Tags */}
         <div className="flex flex-wrap gap-1">
           {expert.tags.slice(0, 3).map((tag, index) => (
-            <Badge key={index} variant="secondary" className="text-xs">
+            <span 
+              key={index}
+              className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700 font-bold"
+            >
               #{tag}
-            </Badge>
+            </span>
           ))}
           {expert.tags.length > 3 && (
-            <Badge variant="outline" className="text-xs">
+            <span className="px-2 py-1 text-xs rounded-full bg-muted text-muted-foreground">
               +{expert.tags.length - 3}
-            </Badge>
+            </span>
           )}
         </div>
 

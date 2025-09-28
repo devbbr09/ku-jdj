@@ -12,7 +12,6 @@ import {
   Eye, 
   Palette, 
   MessageCircle,
-  TrendingUp,
   Target
 } from 'lucide-react';
 
@@ -112,6 +111,13 @@ export default function AnalysisResultPage() {
                 {(analysisResult.details?.detailedFeedback?.overallScore || analysisResult.score) >= 80 ? '우수' : 
                  (analysisResult.details?.detailedFeedback?.overallScore || analysisResult.score) >= 60 ? '양호' : '개선 필요'}
               </Badge>
+              
+              {/* 종합 피드백을 전체 점수 바로 하단에 표시 */}
+              {analysisResult.details?.detailedFeedback?.overallFeedback && (
+                <div className="mt-6 p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg border-l-4 border-primary">
+                  <p className="text-sm leading-relaxed text-center">{analysisResult.details?.detailedFeedback?.overallFeedback}</p>
+                </div>
+              )}
             </CardHeader>
           </Card>
 
@@ -209,22 +215,6 @@ export default function AnalysisResultPage() {
             </CardContent>
           </Card>
 
-          {/* 전체 피드백 */}
-          {analysisResult.details?.detailedFeedback?.overallFeedback && (
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <TrendingUp className="h-5 w-5" />
-                  <span>종합 피드백</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg border-l-4 border-primary">
-                  <p className="text-sm leading-relaxed">{analysisResult.details?.detailedFeedback?.overallFeedback}</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* 분석 상세 정보 */}
           <Card className="mb-8">
