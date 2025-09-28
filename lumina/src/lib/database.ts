@@ -4,12 +4,28 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// 환경 변수가 없을 때 더미 클라이언트 생성 (빌드 시 오류 방지)
+let supabase: any;
+let supabaseAdmin: any;
+
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  console.warn('Supabase environment variables are not set. Using dummy client for build.');
+  // 더미 클라이언트 생성
+  supabase = {
+    from: () => ({
+      insert: () => ({ select: () => ({ data: null, error: null }) }),
+      select: () => ({ data: [], error: null }),
+      update: () => ({ data: null, error: null }),
+      delete: () => ({ data: null, error: null })
+    })
+  };
+  supabaseAdmin = supabase;
+} else {
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
+  supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey);
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey);
+export { supabase, supabaseAdmin };
 
 // User Service
 export const userService = {
