@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ProgressTracker from '@/components/ProgressTracker';
 import ImageUpload from '@/components/ImageUpload';
+import AnalysisProgress from '@/components/AnalysisProgress';
 import { ArrowLeft, Sparkles, Camera, Target, Upload } from 'lucide-react';
 
 export default function AnalyzePage() {
@@ -274,25 +275,8 @@ export default function AnalyzePage() {
         </div>
       </div>
 
-      {/* Analysis Modal */}
-      {isAnalyzing && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4">
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-pink-400 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
-                <Sparkles className="h-8 w-8 text-white animate-spin" />
-              </div>
-              <h2 className="text-xl font-bold mb-2 text-gray-800">AI 분석중...</h2>
-              <p className="text-gray-600 text-sm mb-4">잠시만 기다려주세요</p>
-              <div className="flex justify-center space-x-1">
-                <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Analysis Progress Modal */}
+      <AnalysisProgress isVisible={isAnalyzing} />
     </div>
   );
 }
