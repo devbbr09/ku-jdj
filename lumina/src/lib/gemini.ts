@@ -24,16 +24,14 @@ async function fetchImageAsBase64(imageUrl: string): Promise<string> {
 // API 호출 및 JSON 파싱을 담당하는 공통 함수
 async function callGeminiApi(
   model: any,
-  systemPrompt: string,
   userPrompt: string,
   images: Part[]
 ): Promise<any> {
-  const result = await model.generateContent({
-    contents: [
-      { role: "system", parts: [{ text: systemPrompt }] },
-      { role: "user", parts: [...images, { text: userPrompt }] }
-    ]
-  });
+
+  const result = await model.generateContent([
+    ...images, 
+    userPrompt
+  ]);
   const response = await result.response;
   const text = await response.text();
 
@@ -207,6 +205,7 @@ const unifiedSystemPrompt = `
 8.  모든 내용은 전문적이면서 친근한 톤의 **한국어**로 작성하세요.
 9.  overallScore는 60~100 사이의 정수, subScores의 각 항목은 1~10점 사이의 정수로 할 것.
 10.  **Vision AI 분석 결과를 적극 참고**하여 더 정확하고 객관적인 평가를 수행하세요.
+11. 아이 메이크업과 베이스 메이크업, 립 메이크업의 피드백 양은 최소 3줄 이상 작성하고, 서로 비슷한 양을 맞춰서 작성하세요.
 `;
 
 /**
@@ -216,7 +215,7 @@ const unifiedSystemPrompt = `
  */
 export async function generateMakeupAnalysis(prompt: MakeupAnalysisPrompt): Promise<MakeupAnalysisResult> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
     
     if (!prompt.barefaceImageUrl || !prompt.makeupImageUrl || !prompt.referenceImageUrl) {
       throw new Error("모든 필수 이미지가 제공되지 않았습니다.");
@@ -235,21 +234,76 @@ export async function generateMakeupAnalysis(prompt: MakeupAnalysisPrompt): Prom
 
     images.push({ inlineData: { data: await fetchImageAsBase64(prompt.referenceImageUrl), mimeType: "image/jpeg" } });
     imageDescriptions += `\n- 세 번째 사진은 사용자가 참고한 레퍼런스 사진입니다. 메이크업 후 사진과 비교하여 분석해주세요.`;
+    
+    const systemPrompt = `당신은 전문 메이크업 아티스트입니다. 
+    사용자가 제공한 사진들을 분석하여 반드시 점수와 구체적인 피드백을 제공해주세요.
+    점수는 60-100점 사이의 정확한 점수를 제공해야 합니다. 점수를 제공하지 않으면 안됩니다.
+    
+    점수 기준 (60-100점 범위):
+    - 90-100점: 전문가 수준의 완벽한 메이크업 (거의 완벽, 미세한 조정만 필요)
+    - 80-89점: 매우 우수한 메이크업 (약간의 개선점 있음, 전체적으로 훌륭함)
+    - 70-79점: 좋은 메이크업 (몇 가지 개선점 있음, 기본기는 갖춤)
+    - 60-69점: 기본적인 메이크업 (개선 여지 있음, 더 발전 가능)
+    
+    점수 평가 기준:
+    - 기술적 완성도 (블렌딩, 정확성)
+    - 색상 선택과 조화
+    - 얼굴형에 맞는 메이크업
+    - 전체적인 균형과 조화
+    - 세부적인 완성도
+    
+    피드백 작성 가이드라인:
+    1. 긍정적인 부분을 먼저 언급
+    2. 구체적인 개선점 제시
+    3. 민낯과 메이크업 전후 비교, 그리고 레퍼런스와의 차이점 분석을 포함
+    4. 실제로 적용 가능한 조언 제공
+    5. 한국어로 자연스럽게 작성하며, 전문적이지만 친근한 톤 사용
 
-    const basicInfoContext = ''; // BasicInfo 제거
+    ⚠️ 필수 요구사항:
+    1. 반드시 60-100점 사이의 정확한 점수를 제공해야 합니다
+    2. 점수를 제공하지 않으면 안됩니다
+    3. 유효한 JSON 형태로만 응답하세요
+    4. 다른 설명이나 텍스트는 포함하지 마세요`;
+
+    const basicInfoContext = '';
 
     const visionContext = visionAnalysis ? 
       `\n\nVision AI 분석 결과:\n${JSON.stringify(visionAnalysis, null, 2)}` : '';
 
+    // 분석 타입별 특화된 프롬프트 생성
+    const analysisTypePrompts = {
+      eye: "아이 메이크업(아이섀도, 아이라이너, 마스카라, 아이브로우)에 집중하여 분석해주세요.",
+      base: "베이스 메이크업(파운데이션, 컨실러, 컨투어링, 피부톤 매칭)에 집중하여 분석해주세요.",
+      lip: "립 메이크업(립스틱, 립라이너, 립글로스)에 집중하여 분석해주세요.",
+      overall: "전체적인 메이크업의 조화와 완성도를 종합적으로 분석해주세요."
+    };
+
     const userPrompt = `
+      ${unifiedSystemPrompt}
+
       ${imageDescriptions}
       ${basicInfoContext}
       ${visionContext}
 
       위 정보를 바탕으로 '${prompt.analysisType}' 메이크업에 대한 상세 분석 결과를 JSON 형식으로 제공하세요.
+      
+      ${analysisTypePrompts[prompt.analysisType]}
+      
+      이 분석에서는 ${prompt.analysisType} 메이크업의 기술적 완성도, 색상 조화, 대칭성, 블렌딩 등을 중점적으로 평가해주세요.
+      
+      점수 평가 기준:
+      - eye: 아이섀도 블렌딩(30%), 아이라이너 정확성(25%), 마스카라 균일성(25%), 아이브로우 대칭성(20%)
+      - base: 피부톤 매칭(40%), 잡티 커버리지(30%), 컨투어링 자연스러움(30%)
+      - lip: 립 컬러 조화(40%), 립 라인 정확성(30%), 블렌딩 완성도(30%)
+      - overall: 전체 조화(40%), 기술적 완성도(30%), 레퍼런스 유사도(30%)
     `;
     
-    const parsed = await callGeminiApi(model, unifiedSystemPrompt, userPrompt, images);
+    console.log(`🔍 Gemini 분석 시작 - 타입: ${prompt.analysisType}`);
+    
+    const parsed = await callGeminiApi(model, userPrompt, images);
+    
+    console.log(`📊 Gemini 분석 결과 - 타입: ${prompt.analysisType}, 점수: ${parsed.overallScore}`);
+    console.log(`📝 Gemini 원본 응답 - 타입: ${prompt.analysisType}:`, JSON.stringify(parsed, null, 2));
     
     return {
       overallScore: parsed.overallScore,

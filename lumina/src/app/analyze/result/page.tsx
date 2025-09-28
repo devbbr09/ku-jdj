@@ -13,7 +13,6 @@ import {
   Palette, 
   MessageCircle,
   TrendingUp,
-  Lightbulb,
   Target
 } from 'lucide-react';
 
@@ -176,27 +175,6 @@ export default function AnalysisResultPage() {
             </Card>
           </div>
 
-          {/* 전문가 팁 */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Lightbulb className="h-5 w-5" />
-                <span>전문가 팁</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3">
-                {(analysisResult.details?.detailedFeedback?.expertTips || []).map((tip: string, index: number) => (
-                  <li key={index} className="flex items-start space-x-3">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-bold text-primary">{index + 1}</span>
-                    </div>
-                    <span className="text-sm">{tip}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
 
           {/* 개선사항 */}
           <Card className="mb-8">

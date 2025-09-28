@@ -63,10 +63,10 @@ async function generateAdvancedFeedback(analyses: any[], score: number, mainImag
       ]);
       
       // Gemini에서 받은 점수와 피드백 사용
-      const eyeScore = eyeAnalysis.score;
-      const baseScore = baseAnalysis.score;
-      const lipScore = lipAnalysis.score;
-      const overallScore = overallAnalysis.score;
+      const eyeScore = eyeAnalysis.overallScore;
+      const baseScore = baseAnalysis.overallScore;
+      const lipScore = lipAnalysis.overallScore;
+      const overallScore = overallAnalysis.overallScore;
       
       // 전문가 팁은 Gemini에서 받은 개선사항 사용
       const expertTips = [
@@ -96,6 +96,7 @@ async function generateAdvancedFeedback(analyses: any[], score: number, mainImag
   } catch (error) {
       console.error('Gemini 피드백 생성 오류:', error);
     // 오류 발생 시 기존 로직으로 fallback
+    console.log('🔄 Fallback 로직 사용: generateComparativeFeedback');
     return generateComparativeFeedback(analyses, score);
   }
 }
@@ -489,20 +490,20 @@ export async function POST(request: NextRequest) {
     
     // 1. 민낯 사진 분석
     const bareFaceAnalysis = await analyzeImage(imageUrl);
-    analyses.push({ type: 'bareFace', faceAnalysis: bareFaceAnalysis, imageContent: bareFaceAnalysis });
+    analyses.push({ type: 'bareFace', faceAnalysis: bareFaceAnalysis, imageContent: bareFaceAnalysis, imageUrl: imageUrl });
     console.log('민낯 사진 분석 완료');
 
     // 2. 메이크업 사진 분석 (있는 경우)
     if (additionalImages?.makeup) {
       const makeupAnalysis = await analyzeImage(additionalImages.makeup);
-      analyses.push({ type: 'makeup', faceAnalysis: makeupAnalysis, imageContent: makeupAnalysis });
+      analyses.push({ type: 'makeup', faceAnalysis: makeupAnalysis, imageContent: makeupAnalysis, imageUrl: additionalImages.makeup });
       console.log('메이크업 사진 분석 완료');
     }
 
     // 3. 레퍼런스 사진 분석 (있는 경우)
     if (additionalImages?.reference) {
       const referenceAnalysis = await analyzeImage(additionalImages.reference);
-      analyses.push({ type: 'reference', faceAnalysis: referenceAnalysis, imageContent: referenceAnalysis });
+      analyses.push({ type: 'reference', faceAnalysis: referenceAnalysis, imageContent: referenceAnalysis, imageUrl: additionalImages.reference });
       console.log('레퍼런스 사진 분석 완료');
     }
 
