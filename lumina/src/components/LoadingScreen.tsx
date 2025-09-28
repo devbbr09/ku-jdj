@@ -60,7 +60,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
   useEffect(() => {
     const totalDuration = steps.reduce((sum, step) => sum + step.duration, 0);
     const stepDuration = 100; // Update progress every 100ms
-    const totalSteps = totalDuration / stepDuration;
+    // const totalSteps = totalDuration / stepDuration;
 
     let currentStepIndex = 0;
     let currentProgress = 0;
@@ -91,7 +91,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
     }, stepDuration);
 
     return () => clearInterval(interval);
-  }, [onComplete]);
+  }, [onComplete, steps]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">

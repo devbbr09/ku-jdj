@@ -4,9 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Sparkles } from 'lucide-react';
-import { BasicInfo } from '@/components/BasicInfoSelector'; 
-import { generateMakeupAnalysis } from '@/lib/gemini'; // Corrected import path
+import { ArrowRight } from 'lucide-react';
+import { BasicInfo } from '@/components/BasicInfoSelector';
 
 // 드롭다운 및 체크박스 옵션 데이터
 const faceShapeOptions = ['둥근형', '긴 얼굴형', '각진형(사각형)', '계란형', '하트형'];
@@ -53,7 +52,7 @@ export default function BasicInfoPage() {
     info.eyeDepth;
 
   const handleConfirm = () => {
-    const query = new URLSearchParams(info as any).toString();
+    const query = new URLSearchParams(Object.entries(info).filter(([_, value]) => value !== '')).toString();
     router.push(`/analyze?${query}`);
   };
 

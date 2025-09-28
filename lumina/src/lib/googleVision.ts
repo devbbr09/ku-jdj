@@ -152,7 +152,7 @@ function calculateColorDifference(color1: {red: number, green: number, blue: num
 /**
  * 립 컬러를 분석합니다.
  */
-function analyzeLipColor(lipLandmarks: any[], dominantColors: DominantColor[], faceColor: {red: number, green: number, blue: number}): LipColorAnalysis {
+function analyzeLipColor(lipLandmarks: Array<{type: string; position: {x: number; y: number; z: number}}>, dominantColors: DominantColor[], faceColor: {red: number, green: number, blue: number}): LipColorAnalysis {
   // 입술 영역에서 가장 두드러진 색상을 립 컬러로 간주
   let lipColor = { red: 200, green: 100, blue: 120 }; // 기본 립 색상
   
@@ -191,7 +191,7 @@ function analyzeLipColor(lipLandmarks: any[], dominantColors: DominantColor[], f
 /**
  * 립 적용 상태를 분석합니다.
  */
-function analyzeLipApplication(lipLandmarks: any[], dominantColors: DominantColor[]): LipApplicationAnalysis {
+function analyzeLipApplication(lipLandmarks: Array<{type: string; position: {x: number; y: number; z: number}}>, dominantColors: DominantColor[]): LipApplicationAnalysis {
   // 입술 관련 색상들의 균일성 분석
   const lipColors = dominantColors.filter(color => {
     const saturation = calculateSaturation(color.color);
@@ -229,7 +229,7 @@ function analyzeLipApplication(lipLandmarks: any[], dominantColors: DominantColo
 /**
  * 입술 컨디션을 분석합니다.
  */
-function analyzeLipCondition(dominantColors: DominantColor[], labels: any[]): LipConditionAnalysis {
+function analyzeLipCondition(dominantColors: DominantColor[], labels: Array<{description: string; score: number}>): LipConditionAnalysis {
   // 라벨에서 질감 관련 정보 추출
   const glossyLabels = ['glossy', 'shiny', 'wet', 'gloss'];
   const matteLabels = ['matte', 'dry', 'powder'];

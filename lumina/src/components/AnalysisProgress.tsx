@@ -88,26 +88,31 @@ export default function AnalysisProgress({ isVisible }: AnalysisProgressProps) {
     let stepIndex = 0;
     let timeoutId: NodeJS.Timeout;
 
-    const processStep = () => {
-      if (stepIndex < analysisSteps.length) {
-        const step = analysisSteps[stepIndex];
-        
-        // 현재 단계로 설정
-        setCurrentStep(stepIndex);
-        setProgress(step.progress);
-        
-        // 3초~4초 사이 랜덤 대기 후 다음 단계로
-        const delay = 3000 + Math.random() * 1000;
-        
-        timeoutId = setTimeout(() => {
-          stepIndex++;
-          processStep();
-        }, delay);
+    const runSteps = () => {
+      if (stepIndex >= analysisSteps.length) {
+        console.log('All steps completed');
+        return;
       }
+
+      const step = analysisSteps[stepIndex];
+      console.log(`Running step ${stepIndex + 1}: ${step.message}`);
+      
+      // 현재 단계로 설정
+      setCurrentStep(stepIndex);
+      setProgress(step.progress);
+      
+      // 3초~4초 사이 랜덤 대기 후 다음 단계로
+      const delay = 3000 + Math.random() * 1000;
+      console.log(`Waiting ${delay}ms before next step`);
+      
+      timeoutId = setTimeout(() => {
+        stepIndex++;
+        runSteps();
+      }, delay);
     };
 
     // 첫 번째 단계 시작
-    processStep();
+    runSteps();
 
     return () => {
       if (timeoutId) {

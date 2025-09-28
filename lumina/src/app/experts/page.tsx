@@ -11,11 +11,7 @@ import { Expert } from '@/types';
 import { 
   Search, 
   Filter, 
-  Star, 
-  MapPin, 
-  Clock,
   Users,
-  Heart,
   MessageCircle,
   Home,
   ArrowLeft

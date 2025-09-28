@@ -3,23 +3,51 @@ import { analyzeImage } from '@/lib/googleVision';
 import { analysisService } from '@/lib/database';
 import { generateMakeupAnalysis } from '@/lib/gemini';
 
-// AI 피드백 생성 함수
-function generateFeedback(faceAnalysis: any, imageContent: any, score: number): string {
-  const feedbacks = [
-    "매우 우수한 메이크업입니다!",
-    "좋은 메이크업이지만 몇 가지 개선점이 있습니다.",
-    "메이크업을 더 발전시킬 수 있는 부분들이 있습니다.",
-    "기본적인 메이크업이 잘 되어있습니다."
-  ];
-  
-  if (score >= 90) return feedbacks[0];
-  if (score >= 70) return feedbacks[1];
-  if (score >= 50) return feedbacks[2];
-  return feedbacks[3];
-}
 
 // Gemini를 사용한 고급 피드백 생성 함수
-async function generateAdvancedFeedback(analyses: any[], score: number, mainImageUrl: string): Promise<any> {
+async function generateAdvancedFeedback(analyses: Array<{
+  faceAnalysis: {
+    faceAnnotations: Array<{
+      landmarks: Array<{
+        type: string;
+        position: { x: number; y: number; z: number };
+      }>;
+    }>;
+  };
+  imageContent: string;
+}>, score: number, mainImageUrl: string): Promise<{
+  overallScore: number;
+  overallFeedback: string;
+  eyeMakeup: {
+    score: number;
+    feedback: string;
+    subScores: {
+      eyeshadowColorHarmony: number;
+      eyeshadowBlending: number;
+      eyelinerApplication: number;
+      mascaraApplication: number;
+    };
+  };
+  baseMakeup: {
+    score: number;
+    feedback: string;
+    subScores: {
+      skinToneMatching: number;
+      foundationCoverage: number;
+      concealerApplication: number;
+      powderApplication: number;
+    };
+  };
+  lipMakeup: {
+    score: number;
+    feedback: string;
+    subScores: {
+      lipColorHarmony: number;
+      lipApplication: number;
+      lipDefinition: number;
+    };
+  };
+}> {
   try {
     // Google API 키가 있는 경우 고급 피드백 생성
     if (process.env.GOOGLE_API_KEY) {
@@ -102,7 +130,13 @@ async function generateAdvancedFeedback(analyses: any[], score: number, mainImag
 }
 
 // 비교 분석 기반 상세 피드백 생성 함수
-function generateComparativeFeedback(analyses: any[], score: number): any {
+function generateComparativeFeedback(analyses: Array<{type: string; imageContent: {labels: Array<{description: string; score: number}>}}>, score: number): {
+  overallScore: number;
+  overallFeedback: string;
+  eyeMakeup: {score: number; feedback: string};
+  baseMakeup: {score: number; feedback: string};
+  lipMakeup: {score: number; feedback: string};
+} {
   const bareFace = analyses.find(a => a.type === 'bareFace');
   const makeup = analyses.find(a => a.type === 'makeup');
   const reference = analyses.find(a => a.type === 'reference');
@@ -137,11 +171,11 @@ function generateComparativeFeedback(analyses: any[], score: number): any {
 }
 
 // 아이 메이크업 점수 계산
-function calculateEyeScore(makeup: any, bareFace: any, reference: any): number {
+function calculateEyeScore(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, bareFace: unknown, reference: unknown): number {
   let score = 60; // 기본 점수 (60~100 범위)
   
   if (makeup?.imageContent?.labels) {
-    const eyeLabels = makeup.imageContent.labels.filter((label: any) => 
+    const eyeLabels = makeup.imageContent.labels.filter((label: {description: string; score: number}) => 
       label.description.toLowerCase().includes('eyebrow') ||
       label.description.toLowerCase().includes('eyelash') ||
       label.description.toLowerCase().includes('eye shadow') ||
@@ -150,7 +184,7 @@ function calculateEyeScore(makeup: any, bareFace: any, reference: any): number {
     );
     
     if (eyeLabels.length > 0) {
-      const avgScore = eyeLabels.reduce((sum: number, label: any) => sum + (label.score || 0), 0) / eyeLabels.length;
+      const avgScore = eyeLabels.reduce((sum: number, label: {description: string; score: number}) => sum + (label.score || 0), 0) / eyeLabels.length;
       score += Math.min(avgScore * 20, 20); // 최대 20점 보너스
     }
     
@@ -181,7 +215,7 @@ function calculateEyeScore(makeup: any, bareFace: any, reference: any): number {
 }
 
 // 베이스 메이크업 점수 계산
-function calculateBaseScore(makeup: any, bareFace: any, reference: any): number {
+function calculateBaseScore(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, bareFace: unknown, reference: unknown): number {
   let score = 60; // 기본 점수 (60~100 범위)
   
   if (makeup?.imageContent?.labels) {

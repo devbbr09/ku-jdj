@@ -52,7 +52,7 @@ export const analysisService = {
     imageUrl: string;
     score: number;
     feedback: string;
-    details?: any;
+    details?: Record<string, unknown>;
   }) {
     const { data: analysis, error } = await supabaseAdmin
       .from('analyses')
