@@ -179,7 +179,6 @@ export default function AnalysisResultPage() {
                     alt="메이크업 사진"
                     fill
                     className="object-cover"
-                    unoptimized
                     onError={(e) => {
                       console.error('메이크업 이미지 로드 실패:', e);
                     }}
@@ -194,7 +193,6 @@ export default function AnalysisResultPage() {
                     alt="레퍼런스 사진"
                     fill
                     className="object-cover"
-                    unoptimized
                     onError={(e) => {
                       console.error('레퍼런스 이미지 로드 실패:', e);
                     }}

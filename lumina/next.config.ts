@@ -1,30 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // 이미지 최적화
+  // 이미지 최적화 비활성화 (외부 이미지 로딩 문제 해결)
   images: {
-    domains: [
-      'localhost',
-      'supabase.co',
-      '*.supabase.co',
-      '*.supabase.in',
-      '*.supabase.com'
-    ],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '*.supabase.co',
-      },
-      {
-        protocol: 'https',
-        hostname: '*.supabase.in',
-      },
-      {
-        protocol: 'https',
-        hostname: '*.supabase.com',
-      },
-    ],
-    formats: ['image/webp', 'image/avif'],
+    unoptimized: true,
   },
   
   // 압축 설정
