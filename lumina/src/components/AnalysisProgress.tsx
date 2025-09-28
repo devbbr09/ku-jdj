@@ -100,8 +100,8 @@ export default function AnalysisProgress({ isVisible }: AnalysisProgressProps) {
       setCurrentStep(stepIndex);
       setProgress(step.progress);
       
-      // 3초~4초 사이 랜덤 대기 후 다음 단계로
-      const delay = 3000 + Math.random() * 1000;
+      // 4초~5초 사이 랜덤 대기 후 다음 단계로
+      const delay = 4000 + Math.random() * 1000;
       console.log(`Waiting ${delay}ms before next step`);
       
       timeoutId = setTimeout(() => {
