@@ -67,27 +67,27 @@ async function generateAdvancedFeedback(analyses: Array<{
       // Gemini로 개별 분석 (점수 + 피드백)
       const [eyeAnalysis, baseAnalysis, lipAnalysis, overallAnalysis] = await Promise.all([
         generateMakeupAnalysis({ 
-          barefaceImageUrl: visionAnalysis.bareFace?.imageUrl,
+          barefaceImageUrl: visionAnalysis.bareFace?.imageUrl || mainImageUrl,
           makeupImageUrl: mainImageUrl, 
-          referenceImageUrl: visionAnalysis.reference?.imageUrl,
+          referenceImageUrl: visionAnalysis.reference?.imageUrl || mainImageUrl,
           analysisType: 'eye'
         }),
         generateMakeupAnalysis({ 
-          barefaceImageUrl: visionAnalysis.bareFace?.imageUrl,
+          barefaceImageUrl: visionAnalysis.bareFace?.imageUrl || mainImageUrl,
           makeupImageUrl: mainImageUrl, 
-          referenceImageUrl: visionAnalysis.reference?.imageUrl,
+          referenceImageUrl: visionAnalysis.reference?.imageUrl || mainImageUrl,
           analysisType: 'base'
         }),
         generateMakeupAnalysis({ 
-          barefaceImageUrl: visionAnalysis.bareFace?.imageUrl,
+          barefaceImageUrl: visionAnalysis.bareFace?.imageUrl || mainImageUrl,
           makeupImageUrl: mainImageUrl, 
-          referenceImageUrl: visionAnalysis.reference?.imageUrl,
+          referenceImageUrl: visionAnalysis.reference?.imageUrl || mainImageUrl,
           analysisType: 'lip'
         }),
         generateMakeupAnalysis({ 
-          barefaceImageUrl: visionAnalysis.bareFace?.imageUrl,
+          barefaceImageUrl: visionAnalysis.bareFace?.imageUrl || mainImageUrl,
           makeupImageUrl: mainImageUrl, 
-          referenceImageUrl: visionAnalysis.reference?.imageUrl,
+          referenceImageUrl: visionAnalysis.reference?.imageUrl || mainImageUrl,
           analysisType: 'overall'
         })
       ]);
