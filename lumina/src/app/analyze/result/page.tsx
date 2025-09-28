@@ -53,6 +53,10 @@ export default function AnalysisResultPage() {
     improvements?: string[];
     timestamp?: number;
     imageCount?: number;
+    images?: {
+      makeup?: string;
+      reference?: string;
+    };
   } | null>(null);
 
   useEffect(() => {
@@ -68,6 +72,12 @@ export default function AnalysisResultPage() {
         
         // API 응답 구조에 맞게 데이터 변환
         const detailedFeedback = result.details?.detailedFeedback;
+        const analyses = result.details?.analyses || [];
+        
+        // 이미지 URL들 추출
+        const makeupImage = analyses.find((a: any) => a.type === 'makeup')?.imageUrl;
+        const referenceImage = analyses.find((a: any) => a.type === 'reference')?.imageUrl;
+        
         const transformedResult = {
           id: result.id,
           score: result.score,
@@ -87,7 +97,11 @@ export default function AnalysisResultPage() {
           },
           improvements: detailedFeedback?.improvements || [],
           timestamp: new Date(result.details?.timestamp || Date.now()).getTime(),
-          imageCount: result.details?.analyses?.length || 1
+          imageCount: analyses.length,
+          images: {
+            makeup: makeupImage,
+            reference: referenceImage
+          }
         };
         
         setAnalysisResult(transformedResult);
@@ -154,6 +168,31 @@ export default function AnalysisResultPage() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
+          {/* Image Cards */}
+          {(analysisResult.images?.makeup || analysisResult.images?.reference) && (
+            <div className="grid md:grid-cols-2 gap-6 mb-8">
+              {analysisResult.images?.makeup && (
+                <div className="aspect-square relative overflow-hidden rounded-lg">
+                  <img
+                    src={analysisResult.images.makeup}
+                    alt="메이크업 사진"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              
+              {analysisResult.images?.reference && (
+                <div className="aspect-square relative overflow-hidden rounded-lg">
+                  <img
+                    src={analysisResult.images.reference}
+                    alt="레퍼런스 사진"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Overall Score */}
           <Card className="mb-8">
             <CardHeader className="text-center">
