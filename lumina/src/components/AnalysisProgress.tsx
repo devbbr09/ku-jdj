@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Sparkles, Eye, Palette, Target, Brain, CheckCircle, Loader2 } from 'lucide-react';
 
 interface AnalysisStep {
@@ -18,8 +18,7 @@ interface AnalysisProgressProps {
 export default function AnalysisProgress({ isVisible }: AnalysisProgressProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
-
-  const analysisSteps: AnalysisStep[] = [
+  const analysisSteps: AnalysisStep[] = useMemo(() => [
     { 
       step: 1, 
       message: "업로드된 이미지를 확인하고 있습니다", 
@@ -76,7 +75,7 @@ export default function AnalysisProgress({ isVisible }: AnalysisProgressProps) {
       icon: <Sparkles className="h-5 w-5" />,
       description: "맞춤형 피드백을 생성합니다"
     }
-  ];
+  ], []);
 
   useEffect(() => {
     if (!isVisible) {

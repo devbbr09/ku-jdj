@@ -171,7 +171,7 @@ function generateComparativeFeedback(analyses: Array<{type: string; imageContent
 }
 
 // 아이 메이크업 점수 계산
-function calculateEyeScore(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, bareFace: unknown, reference: unknown): number {
+function calculateEyeScore(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, _bareFace: unknown, _reference: unknown): number {
   let score = 60; // 기본 점수 (60~100 범위)
   
   if (makeup?.imageContent?.labels) {
@@ -251,11 +251,11 @@ function calculateBaseScore(makeup: {imageContent: {labels: Array<{description: 
 }
 
 // 립 메이크업 점수 계산
-function calculateLipScore(makeup: any, bareFace: any, reference: any): number {
+function calculateLipScore(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, _bareFace: unknown, _reference: unknown): number {
   let score = 60; // 기본 점수 (60~100 범위)
   
   if (makeup?.imageContent?.labels) {
-    const lipLabels = makeup.imageContent.labels.filter((label: any) => 
+    const lipLabels = makeup.imageContent.labels.filter((label: {description: string; score: number}) => 
       label.description.toLowerCase().includes('lip') ||
       label.description.toLowerCase().includes('lipstick') ||
       label.description.toLowerCase().includes('mouth') ||
@@ -263,7 +263,7 @@ function calculateLipScore(makeup: any, bareFace: any, reference: any): number {
     );
     
     if (lipLabels.length > 0) {
-      const avgScore = lipLabels.reduce((sum: number, label: any) => sum + (label.score || 0), 0) / lipLabels.length;
+      const avgScore = lipLabels.reduce((sum: number, label: {description: string; score: number}) => sum + (label.score || 0), 0) / lipLabels.length;
       score += Math.min(avgScore * 15, 15); // 최대 15점 보너스
     }
     
@@ -287,10 +287,10 @@ function calculateLipScore(makeup: any, bareFace: any, reference: any): number {
 }
 
 // 아이 메이크업 피드백 생성
-function generateEyeFeedback(makeup: any, bareFace: any, reference: any): string {
+function generateEyeFeedback(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, _bareFace: unknown, _reference: unknown): string {
   if (!makeup) return "메이크업 사진이 필요합니다.";
   
-  const eyeLabels = makeup.imageContent?.labels?.filter((label: any) => 
+  const eyeLabels = makeup.imageContent?.labels?.filter((label: {description: string; score: number}) => 
     label.description.toLowerCase().includes('eyebrow') ||
     label.description.toLowerCase().includes('eyelash') ||
     label.description.toLowerCase().includes('eye') ||
@@ -304,7 +304,7 @@ function generateEyeFeedback(makeup: any, bareFace: any, reference: any): string
   // 라벨 분석 결과
   const hasEyeLabels = eyeLabels.length > 0;
   const avgLabelScore = hasEyeLabels ? 
-    eyeLabels.reduce((sum: number, label: any) => sum + (label.score || 0), 0) / eyeLabels.length : 0;
+    eyeLabels.reduce((sum: number, label: {description: string; score: number}) => sum + (label.score || 0), 0) / eyeLabels.length : 0;
   
   // 동적 피드백 생성
   if (!faceDetected) {
@@ -320,9 +320,9 @@ function generateEyeFeedback(makeup: any, bareFace: any, reference: any): string
   }
   
   // 실제 분석 결과를 기반으로 한 개인화된 피드백
-  const detectedLabels = eyeLabels.map((label: any) => label.description).join(', ');
+  const detectedLabels = eyeLabels.map((label: {description: string; score: number}) => label.description).join(', ');
   const joyLevel = makeup.faceAnalysis?.faceAttributes?.joy || 0;
-  const surpriseLevel = makeup.faceAnalysis?.faceAttributes?.surprise || 0;
+  // const surpriseLevel = makeup.faceAnalysis?.faceAttributes?.surprise || 0;
   
   // 라벨 점수에 따른 피드백
   if (avgLabelScore > 0.8) {
@@ -347,7 +347,7 @@ function generateEyeFeedback(makeup: any, bareFace: any, reference: any): string
 }
 
 // 베이스 메이크업 피드백 생성
-function generateBaseFeedback(makeup: any, bareFace: any, reference: any): string {
+function generateBaseFeedback(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, _bareFace: unknown, _reference: unknown): string {
   if (!makeup) return "메이크업 사진이 필요합니다.";
   
   const baseLabels = makeup.imageContent?.labels?.filter((label: any) => 
