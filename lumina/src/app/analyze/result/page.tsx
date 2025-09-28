@@ -173,23 +173,31 @@ export default function AnalysisResultPage() {
           {(analysisResult.images?.makeup || analysisResult.images?.reference) && (
             <div className="grid md:grid-cols-2 gap-6 mb-8">
               {analysisResult.images?.makeup && (
-                <div className="aspect-square relative overflow-hidden rounded-lg">
+                <div className="aspect-square relative overflow-hidden rounded-lg bg-gray-100">
                   <Image
                     src={analysisResult.images.makeup}
                     alt="메이크업 사진"
                     fill
                     className="object-cover"
+                    unoptimized
+                    onError={(e) => {
+                      console.error('메이크업 이미지 로드 실패:', e);
+                    }}
                   />
                 </div>
               )}
               
               {analysisResult.images?.reference && (
-                <div className="aspect-square relative overflow-hidden rounded-lg">
+                <div className="aspect-square relative overflow-hidden rounded-lg bg-gray-100">
                   <Image
                     src={analysisResult.images.reference}
                     alt="레퍼런스 사진"
                     fill
                     className="object-cover"
+                    unoptimized
+                    onError={(e) => {
+                      console.error('레퍼런스 이미지 로드 실패:', e);
+                    }}
                   />
                 </div>
               )}
