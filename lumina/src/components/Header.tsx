@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Sparkles, User, LogIn } from 'lucide-react';
+import { Sparkles, User } from 'lucide-react';
 
 export default function Header() {
   const router = useRouter();
@@ -21,7 +21,7 @@ export default function Header() {
 
   const handleProfileClick = () => {
     if (!isAuthenticated) {
-      alert('마이페이지는 로그인이 필요합니다.\n로그인하시면 분석 히스토리와 즐겨찾기를 저장할 수 있습니다.');
+      alert('로그인 기능은 아직 지원되지 않아요.');
       return;
     }
     router.push('/profile');
@@ -42,25 +42,14 @@ export default function Header() {
 
         {/* User Actions - 우측 끝으로 완전 정렬 */}
         <div className="flex items-center space-x-2">
-          {isAuthenticated ? (
-            <Button 
-              variant="ghost"
-              onClick={handleProfileClick}
-              className="flex items-center space-x-2"
-            >
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">마이페이지</span>
-            </Button>
-          ) : (
-            <Button 
-              variant="ghost"
-              onClick={handleProfileClick}
-              className="flex items-center space-x-2"
-            >
-              <LogIn className="h-4 w-4" />
-              <span className="hidden sm:inline">로그인</span>
-            </Button>
-          )}
+          <Button 
+            variant="ghost"
+            onClick={handleProfileClick}
+            className="flex items-center space-x-2"
+          >
+            <User className="h-4 w-4" />
+            <span className="hidden sm:inline">GUEST</span>
+          </Button>
         </div>
       </div>
     </header>

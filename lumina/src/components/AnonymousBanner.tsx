@@ -45,12 +45,13 @@ export default function AnonymousBanner() {
             </div>
           </div>
           
-          <div className="mt-3 flex space-x-2">
-            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+          <div className="mt-3">
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => alert('로그인 기능은 아직 지원되지 않아요.')}
+            >
               로그인하기
-            </Button>
-            <Button size="sm" variant="outline">
-              나중에 하기
             </Button>
           </div>
         </div>
