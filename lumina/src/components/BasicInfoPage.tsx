@@ -5,7 +5,16 @@ import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
-import { BasicInfo } from '@/components/BasicInfoSelector';
+// BasicInfo 타입 정의
+interface BasicInfo {
+  faceShape: string;
+  personalColor: string;
+  eyeShape: string;
+  eyeSize: string;
+  eyeDirection: string;
+  eyeDepth: string;
+  preferredStyle: string[];
+}
 
 // 드롭다운 및 체크박스 옵션 데이터
 const faceShapeOptions = ['둥근형', '긴 얼굴형', '각진형(사각형)', '계란형', '하트형'];
@@ -30,16 +39,16 @@ export default function BasicInfoPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setInfo(prev => ({ ...prev, [name]: value }));
+    setInfo((prev: BasicInfo) => ({ ...prev, [name]: value }));
   };
 
   const handleStyleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, checked } = e.target;
-    setInfo(prev => ({
+    setInfo((prev: BasicInfo) => ({
       ...prev,
       preferredStyle: checked
         ? [...prev.preferredStyle, value]
-        : prev.preferredStyle.filter(style => style !== value),
+        : prev.preferredStyle.filter((style: string) => style !== value),
     }));
   };
 
@@ -52,7 +61,7 @@ export default function BasicInfoPage() {
     info.eyeDepth;
 
   const handleConfirm = () => {
-    const query = new URLSearchParams(Object.entries(info).filter(([, value]) => value !== '')).toString();
+    const query = new URLSearchParams(Object.entries(info).filter(([, value]) => value !== '') as [string, string][]).toString();
     router.push(`/analyze?${query}`);
   };
 

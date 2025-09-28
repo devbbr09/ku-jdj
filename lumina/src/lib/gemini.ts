@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, Part } from '@google/generative-ai';
+import { GoogleGenerativeAI, Part, GenerativeModel } from '@google/generative-ai';
 import { analyzeImage, VisionAnalysisResult } from './googleVision';
 
 // 환경 변수 검증
@@ -58,6 +58,11 @@ async function callGeminiApi(
       lipDefinition: number;
     };
   };
+  subScores: Record<string, any>;
+  feedback: string;
+  improvements: string[];
+  strengths: string[];
+  personalizedNotes: string;
 }> {
 
   const result = await model.generateContent([
@@ -551,7 +556,7 @@ export async function generateMakeupAnalysis(prompt: MakeupAnalysisPrompt): Prom
       improvements: parsed.improvements || [],
       strengths: parsed.strengths || [],
       personalizedNotes: parsed.personalizedNotes || "사용자 맞춤형 조언을 생성할 수 없습니다."
-    };
+    } as MakeupAnalysisResult;
   } catch (error) {
     console.error('Gemini API 오류:', error);
     throw new Error('AI 피드백 생성에 실패했습니다.');

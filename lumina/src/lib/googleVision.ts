@@ -397,9 +397,9 @@ export async function analyzeImage(imageUrl: string): Promise<VisionAnalysisResu
     
     // 립 메이크업 전용 분석 수행 - 새로운 분석 기능 추가
     const faceColor = skinToneAnalysis.faceDominantColor?.color || { red: 200, green: 150, blue: 120 };
-    const lipColorAnalysis = analyzeLipColor(lipLandmarks, dominantColors, faceColor);
-    const lipApplicationAnalysis = analyzeLipApplication(lipLandmarks, dominantColors);
-    const lipConditionAnalysis = analyzeLipCondition(dominantColors, labels);
+    const lipColorAnalysis = analyzeLipColor(lipLandmarks as any, dominantColors, faceColor);
+    const lipApplicationAnalysis = analyzeLipApplication(lipLandmarks as any, dominantColors);
+    const lipConditionAnalysis = analyzeLipCondition(dominantColors, labels as any);
     
     const lipMakeupAnalysis: LipMakeupAnalysis = {
       lipLandmarks: lipLandmarks,

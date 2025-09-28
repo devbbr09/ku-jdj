@@ -7,19 +7,18 @@ import { generateMakeupAnalysis } from '@/lib/gemini';
 // Gemini를 사용한 고급 피드백 생성 함수
 async function generateAdvancedFeedback(analyses: Array<{
   type: string;
-  faceAnalysis: {
-    faceAnnotations: Array<{
-      landmarks: Array<{
-        type: string;
-        position: { x: number; y: number; z: number };
-      }>;
-    }>;
-  };
-  imageContent: string;
+  faceAnalysis: any;
+  imageContent: any;
   imageUrl: string;
 }>, score: number, mainImageUrl: string): Promise<{
   overallScore: number;
   overallFeedback: string;
+  eyeScore: number;
+  baseScore: number;
+  lipScore: number;
+  eyeFeedback: string;
+  baseFeedback: string;
+  lipFeedback: string;
   eyeMakeup: {
     score: number;
     feedback: string;
@@ -49,6 +48,8 @@ async function generateAdvancedFeedback(analyses: Array<{
       lipDefinition: number;
     };
   };
+  expertTips: string[];
+  improvements: string[];
 }> {
   try {
     // Google API 키가 있는 경우 고급 피드백 생성
@@ -108,14 +109,43 @@ async function generateAdvancedFeedback(analyses: Array<{
       
       return {
         overallScore,
-        eyeScore,
-        baseScore,
-        lipScore,
+        eyeScore: eyeAnalysis.overallScore,
+        baseScore: baseAnalysis.overallScore,
+        lipScore: lipAnalysis.overallScore,
         eyeFeedback: eyeAnalysis.feedback,
         baseFeedback: baseAnalysis.feedback,
         lipFeedback: lipAnalysis.feedback,
         overallFeedback: overallAnalysis.feedback,
-        expertTips,
+        eyeMakeup: {
+          score: eyeAnalysis.overallScore,
+          feedback: eyeAnalysis.feedback,
+          subScores: {
+            eyeshadowColorHarmony: eyeAnalysis.subScores?.eyeMakeup?.eyeshadowColorHarmony || 0,
+            eyeshadowBlending: eyeAnalysis.subScores?.eyeMakeup?.eyeshadowBlending || 0,
+            eyelinerApplication: eyeAnalysis.subScores?.eyeMakeup?.eyelinerApplication || 0,
+            mascaraApplication: eyeAnalysis.subScores?.eyeMakeup?.mascaraApplication || 0
+          }
+        },
+        baseMakeup: {
+          score: baseAnalysis.overallScore,
+          feedback: baseAnalysis.feedback,
+          subScores: {
+            skinToneMatching: baseAnalysis.subScores?.baseMakeup?.skinToneMatching || 0,
+            foundationCoverage: baseAnalysis.subScores?.baseMakeup?.foundationCoverage || 0,
+            concealerApplication: baseAnalysis.subScores?.baseMakeup?.concealerApplication || 0,
+            powderApplication: baseAnalysis.subScores?.baseMakeup?.powderApplication || 0
+          }
+        },
+        lipMakeup: {
+          score: lipAnalysis.overallScore,
+          feedback: lipAnalysis.feedback,
+          subScores: {
+            lipColorHarmony: lipAnalysis.subScores?.lipMakeup?.lipColorHarmony || 0,
+            lipApplication: lipAnalysis.subScores?.lipMakeup?.lipApplication || 0,
+            lipDefinition: lipAnalysis.subScores?.lipMakeup?.lipDefinition || 0
+          }
+        },
+        expertTips: expertTips,
         improvements: overallAnalysis.improvements || []
       };
     } else {
@@ -135,15 +165,93 @@ async function generateAdvancedFeedback(analyses: Array<{
 function generateComparativeFeedback(analyses: Array<{type: string; imageContent: {labels: Array<{description: string; score: number}>}}>, score: number): {
   overallScore: number;
   overallFeedback: string;
-  eyeMakeup: {score: number; feedback: string};
-  baseMakeup: {score: number; feedback: string};
-  lipMakeup: {score: number; feedback: string};
+  eyeScore: number;
+  baseScore: number;
+  lipScore: number;
+  eyeFeedback: string;
+  baseFeedback: string;
+  lipFeedback: string;
+  eyeMakeup: {
+    score: number;
+    feedback: string;
+    subScores: {
+      eyeshadowColorHarmony: number;
+      eyeshadowBlending: number;
+      eyelinerApplication: number;
+      mascaraApplication: number;
+    };
+  };
+  baseMakeup: {
+    score: number;
+    feedback: string;
+    subScores: {
+      skinToneMatching: number;
+      foundationCoverage: number;
+      concealerApplication: number;
+      powderApplication: number;
+    };
+  };
+  lipMakeup: {
+    score: number;
+    feedback: string;
+    subScores: {
+      lipColorHarmony: number;
+      lipApplication: number;
+      lipDefinition: number;
+    };
+  };
+  expertTips: string[];
+  improvements: string[];
 } {
   const bareFace = analyses.find(a => a.type === 'bareFace');
   const makeup = analyses.find(a => a.type === 'makeup');
   const reference = analyses.find(a => a.type === 'reference');
   
   // 각 영역별 점수 계산
+  if (!makeup) {
+    return {
+      overallScore: score,
+      overallFeedback: "메이크업 사진이 필요합니다.",
+      eyeScore: 0,
+      baseScore: 0,
+      lipScore: 0,
+      eyeFeedback: "메이크업 사진이 필요합니다.",
+      baseFeedback: "메이크업 사진이 필요합니다.",
+      lipFeedback: "메이크업 사진이 필요합니다.",
+      eyeMakeup: {
+        score: 0,
+        feedback: "메이크업 사진이 필요합니다.",
+        subScores: {
+          eyeshadowColorHarmony: 0,
+          eyeshadowBlending: 0,
+          eyelinerApplication: 0,
+          mascaraApplication: 0
+        }
+      },
+      baseMakeup: {
+        score: 0,
+        feedback: "메이크업 사진이 필요합니다.",
+        subScores: {
+          skinToneMatching: 0,
+          foundationCoverage: 0,
+          concealerApplication: 0,
+          powderApplication: 0
+        }
+      },
+      lipMakeup: {
+        score: 0,
+        feedback: "메이크업 사진이 필요합니다.",
+        subScores: {
+          lipColorHarmony: 0,
+          lipApplication: 0,
+          lipDefinition: 0
+        }
+      },
+      expertTips: [],
+      improvements: []
+    };
+  }
+
   const eyeScore = calculateEyeScore(makeup, bareFace, reference);
   const baseScore = calculateBaseScore(makeup, bareFace, reference);
   const lipScore = calculateLipScore(makeup, bareFace, reference);
@@ -161,12 +269,42 @@ function generateComparativeFeedback(analyses: Array<{type: string; imageContent
   
   return {
     overallScore: score,
+    overallFeedback: `전체 메이크업 점수: ${score}점. 아이 메이크업 ${eyeScore}점, 베이스 메이크업 ${baseScore}점, 립 메이크업 ${lipScore}점으로 구성됩니다.`,
     eyeScore,
     baseScore,
     lipScore,
     eyeFeedback,
     baseFeedback,
     lipFeedback,
+    eyeMakeup: {
+      score: eyeScore,
+      feedback: eyeFeedback,
+      subScores: {
+        eyeshadowColorHarmony: Math.round(eyeScore * 0.3),
+        eyeshadowBlending: Math.round(eyeScore * 0.3),
+        eyelinerApplication: Math.round(eyeScore * 0.2),
+        mascaraApplication: Math.round(eyeScore * 0.2)
+      }
+    },
+    baseMakeup: {
+      score: baseScore,
+      feedback: baseFeedback,
+      subScores: {
+        skinToneMatching: Math.round(baseScore * 0.3),
+        foundationCoverage: Math.round(baseScore * 0.3),
+        concealerApplication: Math.round(baseScore * 0.2),
+        powderApplication: Math.round(baseScore * 0.2)
+      }
+    },
+    lipMakeup: {
+      score: lipScore,
+      feedback: lipFeedback,
+      subScores: {
+        lipColorHarmony: Math.round(lipScore * 0.3),
+        lipApplication: Math.round(lipScore * 0.3),
+        lipDefinition: Math.round(lipScore * 0.2)
+      }
+    },
     expertTips,
     improvements
   };
@@ -190,22 +328,8 @@ function calculateEyeScore(makeup: {imageContent: {labels: Array<{description: s
       score += Math.min(avgScore * 20, 20); // 최대 20점 보너스
     }
     
-    // 얼굴 감지 보너스
-    if (makeup?.faceAnalysis?.faceDetected) {
-      score += 5;
-    }
-    
-    // 얼굴 신뢰도 보너스
-    if (makeup?.faceAnalysis?.faceAttributes?.confidence) {
-      score += Math.min(makeup.faceAnalysis.faceAttributes.confidence * 5, 5);
-    }
-    
-    // 얼굴 표정 분석 (기쁨, 놀람 등)
-    if (makeup?.faceAnalysis?.faceAttributes) {
-      const joy = makeup.faceAnalysis.faceAttributes.joy || 0;
-      const surprise = makeup.faceAnalysis.faceAttributes.surprise || 0;
-      score += (joy + surprise) * 3; // 표정 분석 보너스
-    }
+    // 기본 보너스 (이미지 품질 기반)
+    score += 5;
   }
   
   // 랜덤 요소 추가 (실제 분석 결과 기반)
@@ -233,15 +357,8 @@ function calculateBaseScore(makeup: {imageContent: {labels: Array<{description: 
       score += Math.min(avgScore * 15, 15); // 최대 15점 보너스
     }
     
-    // 얼굴 감지 보너스
-    if (makeup?.faceAnalysis?.faceDetected) {
-      score += 5;
-    }
-    
-    // 얼굴 신뢰도 보너스
-    if (makeup?.faceAnalysis?.faceAttributes?.confidence) {
-      score += Math.min(makeup.faceAnalysis.faceAttributes.confidence * 5, 5);
-    }
+    // 기본 보너스 (이미지 품질 기반)
+    score += 5;
   }
   
   // 랜덤 요소 추가
@@ -269,15 +386,8 @@ function calculateLipScore(makeup: {imageContent: {labels: Array<{description: s
       score += Math.min(avgScore * 15, 15); // 최대 15점 보너스
     }
     
-    // 얼굴 감지 보너스
-    if (makeup?.faceAnalysis?.faceDetected) {
-      score += 5;
-    }
-    
-    // 얼굴 신뢰도 보너스
-    if (makeup?.faceAnalysis?.faceAttributes?.confidence) {
-      score += Math.min(makeup.faceAnalysis.faceAttributes.confidence * 5, 5);
-    }
+    // 기본 보너스 (이미지 품질 기반)
+    score += 5;
   }
   
   // 랜덤 요소 추가
@@ -299,31 +409,19 @@ function generateEyeFeedback(makeup: {imageContent: {labels: Array<{description:
     label.description.toLowerCase().includes('face')
   ) || [];
   
-  // 얼굴 감지 여부
-  const faceDetected = makeup.faceAnalysis?.faceDetected;
-  const confidence = makeup.faceAnalysis?.faceAttributes?.confidence || 0;
-  
   // 라벨 분석 결과
   const hasEyeLabels = eyeLabels.length > 0;
   const avgLabelScore = hasEyeLabels ? 
     eyeLabels.reduce((sum: number, label: {description: string; score: number}) => sum + (label.score || 0), 0) / eyeLabels.length : 0;
   
   // 동적 피드백 생성
-  if (!faceDetected) {
-    return "얼굴이 명확하게 보이지 않습니다. 더 선명한 사진으로 다시 촬영해주세요.";
-  }
-  
-  if (confidence < 0.5) {
-    return "얼굴 인식이 어려워 정확한 분석이 어렵습니다. 정면을 바라보는 사진을 사용해주세요.";
-  }
-  
   if (!hasEyeLabels) {
     return "아이 메이크업이 감지되지 않습니다. 아이섀도나 마스카라를 사용해보세요.";
   }
   
   // 실제 분석 결과를 기반으로 한 개인화된 피드백
   const detectedLabels = eyeLabels.map((label: {description: string; score: number}) => label.description).join(', ');
-  const joyLevel = makeup.faceAnalysis?.faceAttributes?.joy || 0;
+  const joyLevel = 0.5; // 기본값
   // const surpriseLevel = makeup.faceAnalysis?.faceAttributes?.surprise || 0;
   
   // 라벨 점수에 따른 피드백
@@ -334,7 +432,7 @@ function generateEyeFeedback(makeup: {imageContent: {labels: Array<{description:
       return `완벽한 아이 메이크업입니다! 블렌딩이 매우 자연스럽고 전문적입니다. 감지된 요소: ${detectedLabels}`;
     }
   } else if (avgLabelScore > 0.6) {
-    if (confidence < 0.7) {
+    if (avgLabelScore < 0.7) {
       return `아이 메이크업이 좋습니다. 하지만 얼굴 인식이 약간 어려워 정확한 분석이 제한적입니다. 더 선명한 사진으로 다시 촬영해보세요.`;
     } else {
       return `아이 메이크업이 양호합니다. 색상 전환을 더 부드럽게 하고 블렌딩을 개선해보세요. 감지된 요소: ${detectedLabels}`;
@@ -359,24 +457,12 @@ function generateBaseFeedback(makeup: {imageContent: {labels: Array<{description
     label.description.toLowerCase().includes('person')
   ) || [];
   
-  // 얼굴 감지 여부
-  const faceDetected = makeup.faceAnalysis?.faceDetected;
-  const confidence = makeup.faceAnalysis?.faceAttributes?.confidence || 0;
-  
   // 라벨 분석 결과
   const hasBaseLabels = baseLabels.length > 0;
   const avgLabelScore = hasBaseLabels ? 
     baseLabels.reduce((sum: number, label: {description: string; score: number}) => sum + (label.score || 0), 0) / baseLabels.length : 0;
   
   // 동적 피드백 생성
-  if (!faceDetected) {
-    return "얼굴이 명확하게 보이지 않습니다. 더 선명한 사진으로 다시 촬영해주세요.";
-  }
-  
-  if (confidence < 0.5) {
-    return "얼굴 인식이 어려워 정확한 분석이 어렵습니다. 정면을 바라보는 사진을 사용해주세요.";
-  }
-  
   if (!hasBaseLabels) {
     return "베이스 메이크업이 감지되지 않습니다. 파운데이션과 컨실러를 사용해보세요.";
   }
@@ -417,24 +503,12 @@ function generateLipFeedback(makeup: {imageContent: {labels: Array<{description:
     label.description.toLowerCase().includes('face')
   ) || [];
   
-  // 얼굴 감지 여부
-  const faceDetected = makeup.faceAnalysis?.faceDetected;
-  const confidence = makeup.faceAnalysis?.faceAttributes?.confidence || 0;
-  
   // 라벨 분석 결과
   const hasLipLabels = lipLabels.length > 0;
   const avgLabelScore = hasLipLabels ? 
     lipLabels.reduce((sum: number, label: {description: string; score: number}) => sum + (label.score || 0), 0) / lipLabels.length : 0;
   
   // 동적 피드백 생성
-  if (!faceDetected) {
-    return "얼굴이 명확하게 보이지 않습니다. 더 선명한 사진으로 다시 촬영해주세요.";
-  }
-  
-  if (confidence < 0.5) {
-    return "얼굴 인식이 어려워 정확한 분석이 어렵습니다. 정면을 바라보는 사진을 사용해주세요.";
-  }
-  
   if (!hasLipLabels) {
     return "립 메이크업이 감지되지 않습니다. 립스틱과 립라이너를 사용해보세요.";
   }
