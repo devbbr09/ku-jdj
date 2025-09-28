@@ -3,7 +3,7 @@ import { analyzeImage } from '@/lib/googleVision';
 import { analysisService } from '@/lib/database';
 import { generateMakeupAnalysis } from '@/lib/gemini';
 
-// AI 피드백 생성 함수 (임시 - 나중에 OpenAI로 대체)
+// AI 피드백 생성 함수
 function generateFeedback(faceAnalysis: any, imageContent: any, score: number): string {
   const feedbacks = [
     "매우 우수한 메이크업입니다!",
@@ -18,7 +18,7 @@ function generateFeedback(faceAnalysis: any, imageContent: any, score: number): 
   return feedbacks[3];
 }
 
-// OpenAI를 사용한 고급 피드백 생성 함수
+// Gemini를 사용한 고급 피드백 생성 함수
 async function generateAdvancedFeedback(analyses: any[], score: number, mainImageUrl: string): Promise<any> {
   try {
     // Google API 키가 있는 경우 고급 피드백 생성
@@ -508,7 +508,7 @@ export async function POST(request: NextRequest) {
 
     console.log('모든 이미지 분석 완료:', analyses.length, '개');
 
-    // 고급 피드백 생성 (OpenAI 사용 가능 시)
+    // 고급 피드백 생성 (Gemini 사용)
     const detailedFeedback = await generateAdvancedFeedback(analyses, 0, imageUrl);
     
     // 세부 점수들의 평균으로 전체 점수 계산
