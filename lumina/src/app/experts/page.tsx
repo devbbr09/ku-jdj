@@ -11,11 +11,7 @@ import { Expert } from '@/types';
 import { 
   Search, 
   Filter, 
-  Star, 
-  MapPin, 
-  Clock,
   Users,
-  Heart,
   MessageCircle,
   Home,
   ArrowLeft
@@ -235,7 +231,7 @@ export default function ExpertsPage() {
                     <Badge
                       key={tag}
                       variant={selectedTags.includes(tag) ? "default" : "outline"}
-                      className="cursor-pointer"
+                      className="cursor-pointer font-bold"
                       onClick={() => handleTagToggle(tag)}
                     >
                       #{tag}

@@ -20,7 +20,7 @@ export default function Header() {
           </span>
         </div>
 
-        {/* User Actions */}
+        {/* User Actions - 우측 끝으로 완전 정렬 */}
         <div className="flex items-center space-x-2">
           <Button 
             variant="ghost"

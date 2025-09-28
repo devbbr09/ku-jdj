@@ -56,13 +56,15 @@ export default function ImageUpload({
 
   return (
     <div className="w-full">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold mb-2">
-          {title}
-          {required && <span className="text-destructive ml-1">*</span>}
-        </h3>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
+      {title && (
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold mb-2">
+            {title}
+            {required && <span className="text-destructive ml-1">*</span>}
+          </h3>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+      )}
 
       <div
         className={`

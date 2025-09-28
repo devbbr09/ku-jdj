@@ -7,19 +7,53 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   ArrowLeft, 
-  RefreshCw, 
   Star, 
   Eye, 
   Palette, 
   MessageCircle,
-  TrendingUp,
-  Lightbulb,
   Target
 } from 'lucide-react';
 
 export default function AnalysisResultPage() {
   const router = useRouter();
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [analysisResult, setAnalysisResult] = useState<{
+    id?: string;
+    score?: number;
+    overallScore?: number;
+    overallFeedback?: string;
+    eyeMakeup?: {
+      score: number;
+      feedback: string;
+      subScores?: {
+        eyeshadowColorHarmony: number;
+        eyeshadowBlending: number;
+        eyelinerApplication: number;
+        mascaraApplication: number;
+      };
+    };
+    baseMakeup?: {
+      score: number;
+      feedback: string;
+      subScores?: {
+        skinToneMatching: number;
+        foundationCoverage: number;
+        concealerApplication: number;
+        powderApplication: number;
+      };
+    };
+    lipMakeup?: {
+      score: number;
+      feedback: string;
+      subScores?: {
+        lipColorHarmony: number;
+        lipApplication: number;
+        lipDefinition: number;
+      };
+    };
+    improvements?: string[];
+    timestamp?: number;
+    imageCount?: number;
+  } | null>(null);
 
   useEffect(() => {
     // 로컬 스토리지에서 분석 결과 불러오기
@@ -29,14 +63,35 @@ export default function AnalysisResultPage() {
     if (savedResult) {
       try {
         const result = JSON.parse(savedResult);
-        setAnalysisResult(result);
         console.log('분석 결과 불러오기 성공:', result);
         console.log('전체 데이터 구조:', JSON.stringify(result, null, 2));
-        console.log('eyeScore:', result.eyeScore);
-        console.log('eyeFeedback:', result.eyeFeedback);
-        console.log('expertTips:', result.expertTips);
-        console.log('improvements:', result.improvements);
-        console.log('details:', result.details);
+        
+        // API 응답 구조에 맞게 데이터 변환
+        const detailedFeedback = result.details?.detailedFeedback;
+        const transformedResult = {
+          id: result.id,
+          score: result.score,
+          overallScore: detailedFeedback?.overallScore || result.score,
+          overallFeedback: detailedFeedback?.overallFeedback || result.feedback,
+          eyeMakeup: {
+            score: detailedFeedback?.eyeScore || 0,
+            feedback: detailedFeedback?.eyeFeedback || '분석 중...'
+          },
+          baseMakeup: {
+            score: detailedFeedback?.baseScore || 0,
+            feedback: detailedFeedback?.baseFeedback || '분석 중...'
+          },
+          lipMakeup: {
+            score: detailedFeedback?.lipScore || 0,
+            feedback: detailedFeedback?.lipFeedback || '분석 중...'
+          },
+          improvements: detailedFeedback?.improvements || [],
+          timestamp: new Date(result.details?.timestamp || Date.now()).getTime(),
+          imageCount: result.details?.analyses?.length || 1
+        };
+        
+        setAnalysisResult(transformedResult);
+        console.log('변환된 분석 결과:', transformedResult);
       } catch (error) {
         console.error('분석 결과 파싱 오류:', error);
       }
@@ -105,14 +160,21 @@ export default function AnalysisResultPage() {
               <CardTitle className="text-2xl mb-4">전체 점수</CardTitle>
               <div className="flex items-center justify-center space-x-4">
                 <div className="text-6xl font-bold text-primary">
-                  {analysisResult.details?.detailedFeedback?.overallScore || analysisResult.score}
+                  {analysisResult.overallScore || analysisResult.score || 0}
                 </div>
                 <div className="text-2xl text-muted-foreground">/ 100</div>
               </div>
-              <Badge className={`mt-4 ${getScoreBadge(analysisResult.details?.detailedFeedback?.overallScore || analysisResult.score)}`}>
-                {(analysisResult.details?.detailedFeedback?.overallScore || analysisResult.score) >= 80 ? '우수' : 
-                 (analysisResult.details?.detailedFeedback?.overallScore || analysisResult.score) >= 60 ? '양호' : '개선 필요'}
+              <Badge className={`mt-4 ${getScoreBadge(analysisResult.overallScore || analysisResult.score || 0)}`}>
+                {(analysisResult.overallScore || analysisResult.score || 0) >= 80 ? '우수' : 
+                 (analysisResult.overallScore || analysisResult.score || 0) >= 60 ? '양호' : '개선 필요'}
               </Badge>
+              
+              {/* 종합 피드백을 전체 점수 바로 하단에 표시 */}
+              {analysisResult.overallFeedback && (
+                <div className="mt-6 p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg border-l-4 border-primary">
+                  <p className="text-sm leading-relaxed text-center">{analysisResult.overallFeedback}</p>
+                </div>
+              )}
             </CardHeader>
           </Card>
 
@@ -127,11 +189,11 @@ export default function AnalysisResultPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-center">
-                  <div className={`text-3xl font-bold ${getScoreColor(analysisResult.details?.detailedFeedback?.eyeScore || 0)}`}>
-                    {analysisResult.details?.detailedFeedback?.eyeScore || 0}
+                  <div className={`text-3xl font-bold ${getScoreColor(analysisResult.eyeMakeup?.score || 0)}`}>
+                    {analysisResult.eyeMakeup?.score || 0}
                   </div>
                   <div className="text-sm text-muted-foreground mt-2">
-                    {analysisResult.details?.detailedFeedback?.eyeFeedback || '분석 중...'}
+                    {analysisResult.eyeMakeup?.feedback || '분석 중...'}
                   </div>
                 </div>
               </CardContent>
@@ -146,11 +208,11 @@ export default function AnalysisResultPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-center">
-                  <div className={`text-3xl font-bold ${getScoreColor(analysisResult.details?.detailedFeedback?.baseScore || 0)}`}>
-                    {analysisResult.details?.detailedFeedback?.baseScore || 0}
+                  <div className={`text-3xl font-bold ${getScoreColor(analysisResult.baseMakeup?.score || 0)}`}>
+                    {analysisResult.baseMakeup?.score || 0}
                   </div>
                   <div className="text-sm text-muted-foreground mt-2">
-                    {analysisResult.details?.detailedFeedback?.baseFeedback || '분석 중...'}
+                    {analysisResult.baseMakeup?.feedback || '분석 중...'}
                   </div>
                 </div>
               </CardContent>
@@ -165,38 +227,17 @@ export default function AnalysisResultPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-center">
-                  <div className={`text-3xl font-bold ${getScoreColor(analysisResult.details?.detailedFeedback?.lipScore || 0)}`}>
-                    {analysisResult.details?.detailedFeedback?.lipScore || 0}
+                  <div className={`text-3xl font-bold ${getScoreColor(analysisResult.lipMakeup?.score || 0)}`}>
+                    {analysisResult.lipMakeup?.score || 0}
                   </div>
                   <div className="text-sm text-muted-foreground mt-2">
-                    {analysisResult.details?.detailedFeedback?.lipFeedback || '분석 중...'}
+                    {analysisResult.lipMakeup?.feedback || '분석 중...'}
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* 전문가 팁 */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Lightbulb className="h-5 w-5" />
-                <span>전문가 팁</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3">
-                {(analysisResult.details?.detailedFeedback?.expertTips || []).map((tip: string, index: number) => (
-                  <li key={index} className="flex items-start space-x-3">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-bold text-primary">{index + 1}</span>
-                    </div>
-                    <span className="text-sm">{tip}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
 
           {/* 개선사항 */}
           <Card className="mb-8">
@@ -208,7 +249,7 @@ export default function AnalysisResultPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {(analysisResult.details?.detailedFeedback?.improvements || []).map((improvement: any, index: number) => (
+                {(analysisResult.improvements || []).map((improvement: string | {suggestion?: string; text?: string}, index: number) => (
                   <div key={index} className="flex items-start space-x-3 p-3 bg-muted/50 rounded-lg">
                     <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <span className="text-xs font-bold text-orange-600">!</span>
@@ -217,12 +258,7 @@ export default function AnalysisResultPage() {
                       {typeof improvement === 'string' ? (
                         <span className="text-sm">{improvement}</span>
                       ) : (
-                        <div>
-                          <div className="text-sm font-medium">{improvement.suggestion}</div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {improvement.category} • 우선순위: {improvement.priority === 'high' ? '높음' : improvement.priority === 'medium' ? '보통' : '낮음'}
-                          </div>
-                        </div>
+                        <span className="text-sm">{improvement.suggestion || improvement.text || JSON.stringify(improvement)}</span>
                       )}
                     </div>
                   </div>
@@ -231,22 +267,6 @@ export default function AnalysisResultPage() {
             </CardContent>
           </Card>
 
-          {/* 전체 피드백 */}
-          {analysisResult.details?.detailedFeedback?.overallFeedback && (
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <TrendingUp className="h-5 w-5" />
-                  <span>종합 피드백</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg border-l-4 border-primary">
-                  <p className="text-sm leading-relaxed">{analysisResult.details?.detailedFeedback?.overallFeedback}</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* 분석 상세 정보 */}
           <Card className="mb-8">
@@ -260,18 +280,18 @@ export default function AnalysisResultPage() {
               <div className="space-y-4">
                 <div>
                   <div className="font-medium mb-2">분석 ID</div>
-                  <div className="text-sm text-muted-foreground">{analysisResult.id}</div>
+                  <div className="text-sm text-muted-foreground">{analysisResult.id || 'N/A'}</div>
                 </div>
                 <div>
                   <div className="font-medium mb-2">분석 시간</div>
                   <div className="text-sm text-muted-foreground">
-                    {new Date(analysisResult.details?.timestamp || Date.now()).toLocaleString()}
+                    {new Date(analysisResult.timestamp || Date.now()).toLocaleString()}
                   </div>
                 </div>
                 <div>
                   <div className="font-medium mb-2">분석된 이미지 수</div>
                   <div className="text-sm text-muted-foreground">
-                    {analysisResult.details?.analyses?.length || 1}개
+                    {analysisResult.imageCount || 1}개
                   </div>
                 </div>
               </div>

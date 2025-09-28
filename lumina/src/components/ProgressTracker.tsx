@@ -55,16 +55,6 @@ export default function ProgressTracker({ steps, currentStep }: ProgressTrackerP
           </div>
         ))}
       </div>
-      
-      {/* Current Step Description */}
-      <div className="text-center">
-        <h3 className="text-lg font-semibold mb-2">
-          {steps[currentStep]?.title}
-        </h3>
-        <p className="text-muted-foreground">
-          {steps[currentStep]?.description}
-        </p>
-      </div>
     </div>
   );
 }

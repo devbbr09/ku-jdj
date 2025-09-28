@@ -19,7 +19,7 @@ export default function Hero({ onAnalyzeClick, onExpertsClick }: HeroProps) {
               <span className="lumina-text-gradient">
                 나만의 메이크업
               </span>
-              <br />
+              <br className="mb-2" />
               <span className="text-foreground">
                 AI 진단받기
               </span>
@@ -32,11 +32,11 @@ export default function Hero({ onAnalyzeClick, onExpertsClick }: HeroProps) {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-12 justify-center items-center mb-32 mt-16">
             <Button 
               onClick={onAnalyzeClick}
               size="lg"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-2xl hover:scale-110 active:scale-95 transition-all duration-200 hover:brightness-110"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 px-10 py-5 text-lg font-semibold rounded-full shadow-lg hover:shadow-2xl hover:scale-110 active:scale-95 transition-all duration-200 hover:brightness-110 transform scale-112"
             >
               <Sparkles className="mr-2 h-5 w-5" />
               AI 진단 시작하기
@@ -45,7 +45,7 @@ export default function Hero({ onAnalyzeClick, onExpertsClick }: HeroProps) {
               variant="outline" 
               size="lg"
               onClick={onExpertsClick}
-              className="px-8 py-4 text-lg font-semibold rounded-full border-2 hover:bg-primary/20 hover:scale-110 active:scale-95 transition-all duration-200 hover:shadow-lg hover:border-primary/50"
+              className="px-10 py-5 text-lg font-semibold rounded-full border-2 hover:bg-primary/20 hover:scale-110 active:scale-95 transition-all duration-200 hover:shadow-lg hover:border-primary/50 transform scale-112"
             >
               전문가 둘러보기
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -53,7 +53,7 @@ export default function Hero({ onAnalyzeClick, onExpertsClick }: HeroProps) {
           </div>
 
           {/* Features */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto mt-8">
             <div className="text-center">
               <div className="w-12 h-12 mx-auto mb-4 rounded-full lumina-gradient flex items-center justify-center">
                 <Sparkles className="h-6 w-6 text-white" />
