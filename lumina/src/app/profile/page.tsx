@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +22,43 @@ import {
 export default function ProfilePage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('history');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // 간단한 인증 상태 확인 (실제로는 세션 확인)
+    const checkAuth = () => {
+      // 로컬 스토리지나 쿠키에서 인증 상태 확인
+      const userToken = localStorage.getItem('user-token') || sessionStorage.getItem('user-session');
+      
+      if (!userToken) {
+        // 익명 사용자 - 마이페이지 접근 차단
+        alert('마이페이지는 로그인이 필요합니다.\n로그인하시면 분석 히스토리와 즐겨찾기를 저장할 수 있습니다.');
+        router.push('/');
+        return;
+      }
+      
+      setIsAuthenticated(true);
+      setIsLoading(false);
+    };
+
+    checkAuth();
+  }, [router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null; // 리다이렉트 처리됨
+  }
 
   // Mock 데이터
   const analysisHistory = [

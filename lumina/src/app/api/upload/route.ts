@@ -15,8 +15,8 @@ if (!supabaseServiceRoleKey) {
   throw new Error('Supabase Service Role Key가 설정되지 않았습니다.');
 }
 
-console.log('Supabase URL:', supabaseUrl);
-console.log('Service Role Key 존재:', !!supabaseServiceRoleKey);
+// console.log('Supabase URL:', supabaseUrl);
+// console.log('Service Role Key 존재:', !!supabaseServiceRoleKey);
 
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 

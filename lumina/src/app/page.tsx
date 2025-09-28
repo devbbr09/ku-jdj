@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import MakeupStyleCard from '@/components/MakeupStyleCard';
 import MakeupDetailModal from '@/components/MakeupDetailModal';
+import AnonymousBanner from '@/components/AnonymousBanner';
 import { makeupStyles } from '@/lib/data/makeupStyles';
 import { MakeupStyle } from '@/types';
 
@@ -38,6 +39,11 @@ export default function Home() {
       
       <main>
         <Hero onAnalyzeClick={handleAnalyzeClick} onExpertsClick={handleExpertsClick} />
+        
+        {/* Anonymous User Banner */}
+        <div className="container mx-auto px-4 -mt-8">
+          <AnonymousBanner />
+        </div>
         
         {/* Trends Section */}
         <section id="trends" className="py-16 md:py-24">

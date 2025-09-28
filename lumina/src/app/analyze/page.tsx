@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ProgressTracker from '@/components/ProgressTracker';
 import ImageUpload from '@/components/ImageUpload';
 import AnalysisProgress from '@/components/AnalysisProgress';
+import AnonymousBanner from '@/components/AnonymousBanner';
 import { ArrowLeft, Sparkles, Camera, Target, Upload } from 'lucide-react';
 
 export default function AnalyzePage() {
@@ -200,6 +201,9 @@ export default function AnalyzePage() {
 
         {/* Main Content */}
         <div className="max-w-4xl mx-auto">
+          
+          {/* Anonymous User Banner */}
+          <AnonymousBanner />
 
           {/* Image Upload Sections */}
           <div className="space-y-8">
