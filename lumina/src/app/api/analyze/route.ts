@@ -219,7 +219,7 @@ function calculateBaseScore(makeup: {imageContent: {labels: Array<{description: 
   let score = 60; // 기본 점수 (60~100 범위)
   
   if (makeup?.imageContent?.labels) {
-    const baseLabels = makeup.imageContent.labels.filter((label: any) => 
+    const baseLabels = makeup.imageContent.labels.filter((label: {description: string; score: number}) => 
       label.description.toLowerCase().includes('cosmetic') ||
       label.description.toLowerCase().includes('makeup') ||
       label.description.toLowerCase().includes('face') ||
@@ -227,7 +227,7 @@ function calculateBaseScore(makeup: {imageContent: {labels: Array<{description: 
     );
     
     if (baseLabels.length > 0) {
-      const avgScore = baseLabels.reduce((sum: number, label: any) => sum + (label.score || 0), 0) / baseLabels.length;
+      const avgScore = baseLabels.reduce((sum: number, label: {description: string; score: number}) => sum + (label.score || 0), 0) / baseLabels.length;
       score += Math.min(avgScore * 15, 15); // 최대 15점 보너스
     }
     
@@ -350,7 +350,7 @@ function generateEyeFeedback(makeup: {imageContent: {labels: Array<{description:
 function generateBaseFeedback(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, _bareFace: unknown, _reference: unknown): string {
   if (!makeup) return "메이크업 사진이 필요합니다.";
   
-  const baseLabels = makeup.imageContent?.labels?.filter((label: any) => 
+  const baseLabels = makeup.imageContent?.labels?.filter((label: {description: string; score: number}) => 
     label.description.toLowerCase().includes('cosmetic') ||
     label.description.toLowerCase().includes('makeup') ||
     label.description.toLowerCase().includes('face') ||
@@ -364,7 +364,7 @@ function generateBaseFeedback(makeup: {imageContent: {labels: Array<{description
   // 라벨 분석 결과
   const hasBaseLabels = baseLabels.length > 0;
   const avgLabelScore = hasBaseLabels ? 
-    baseLabels.reduce((sum: number, label: any) => sum + (label.score || 0), 0) / baseLabels.length : 0;
+    baseLabels.reduce((sum: number, label: {description: string; score: number}) => sum + (label.score || 0), 0) / baseLabels.length : 0;
   
   // 동적 피드백 생성
   if (!faceDetected) {
@@ -405,10 +405,10 @@ function generateBaseFeedback(makeup: {imageContent: {labels: Array<{description
 }
 
 // 립 메이크업 피드백 생성
-function generateLipFeedback(makeup: any, bareFace: any, reference: any): string {
+function generateLipFeedback(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, _bareFace: unknown, _reference: unknown): string {
   if (!makeup) return "메이크업 사진이 필요합니다.";
   
-  const lipLabels = makeup.imageContent?.labels?.filter((label: any) => 
+  const lipLabels = makeup.imageContent?.labels?.filter((label: {description: string; score: number}) => 
     label.description.toLowerCase().includes('lip') ||
     label.description.toLowerCase().includes('lipstick') ||
     label.description.toLowerCase().includes('mouth') ||
@@ -422,7 +422,7 @@ function generateLipFeedback(makeup: any, bareFace: any, reference: any): string
   // 라벨 분석 결과
   const hasLipLabels = lipLabels.length > 0;
   const avgLabelScore = hasLipLabels ? 
-    lipLabels.reduce((sum: number, label: any) => sum + (label.score || 0), 0) / lipLabels.length : 0;
+    lipLabels.reduce((sum: number, label: {description: string; score: number}) => sum + (label.score || 0), 0) / lipLabels.length : 0;
   
   // 동적 피드백 생성
   if (!faceDetected) {
@@ -463,7 +463,7 @@ function generateLipFeedback(makeup: any, bareFace: any, reference: any): string
 }
 
 // 전문가 팁 생성
-function generateExpertTips(makeup: any, bareFace: any, reference: any): string[] {
+function generateExpertTips(_makeup: unknown, _bareFace: unknown, _reference: unknown): string[] {
   const tips = [
     "메이크업 전 충분한 보습은 필수! 프라이머 사용으로 지속력을 높여보세요.",
     "브러시 대신 뷰티블렌더를 사용하면 더 자연스러운 베이스 연출이 가능합니다.",
@@ -483,31 +483,19 @@ function generateExpertTips(makeup: any, bareFace: any, reference: any): string[
 }
 
 // 개선사항 생성
-function generateImprovements(eyeScore: number, baseScore: number, lipScore: number): any[] {
-  const improvements = [];
+function generateImprovements(eyeScore: number, baseScore: number, lipScore: number): string[] {
+  const improvements: string[] = [];
   
   if (eyeScore < 80) {
-    improvements.push({
-      category: "아이 메이크업",
-      priority: "high",
-      suggestion: "아이섀도 블렌딩 개선"
-    });
+    improvements.push("아이섀도 블렌딩을 더 부드럽게 연출해보세요");
   }
   
   if (baseScore < 75) {
-    improvements.push({
-      category: "베이스 메이크업",
-      priority: "medium",
-      suggestion: "파운데이션 톤 조정"
-    });
+    improvements.push("파운데이션 톤을 조정해보세요");
   }
   
   if (lipScore < 85) {
-    improvements.push({
-      category: "립 메이크업",
-      priority: "low",
-      suggestion: "립라이너 활용"
-    });
+    improvements.push("립라이너를 활용해보세요");
   }
   
   return improvements;
