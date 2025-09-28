@@ -13,7 +13,6 @@ import {
   Filter, 
   Users,
   MessageCircle,
-  Home,
   ArrowLeft
 } from 'lucide-react';
 
@@ -179,21 +178,14 @@ export default function ExpertsPage() {
               <ArrowLeft className="h-4 w-4" />
               <span>뒤로가기</span>
             </Button>
-            <div className="flex items-center space-x-2">
-              <Users className="h-5 w-5 text-primary" />
-              <span className="text-lg font-bold">전문가 매칭</span>
-            </div>
           </div>
           
           <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => router.push('/')}
-              className="flex items-center space-x-2"
-            >
-              <Home className="h-4 w-4" />
-              <span>홈으로</span>
-            </Button>
+            <Users className="h-5 w-5 text-primary" />
+            <span className="text-lg font-bold">전문가 매칭</span>
+          </div>
+          
+          <div className="flex items-center space-x-2">
             <span className="text-sm text-muted-foreground">
               {filteredExperts.length}명의 전문가
             </span>
