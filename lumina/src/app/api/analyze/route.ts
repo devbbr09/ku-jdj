@@ -7,8 +7,8 @@ import { generateMakeupAnalysis } from '@/lib/gemini';
 // Gemini를 사용한 고급 피드백 생성 함수
 async function generateAdvancedFeedback(analyses: Array<{
   type: string;
-  faceAnalysis: any;
-  imageContent: any;
+  faceAnalysis: unknown;
+  imageContent: unknown;
   imageUrl: string;
 }>, score: number, mainImageUrl: string): Promise<{
   overallScore: number;
@@ -94,9 +94,6 @@ async function generateAdvancedFeedback(analyses: Array<{
       ]);
       
       // Gemini에서 받은 점수와 피드백 사용
-      const eyeScore = eyeAnalysis.overallScore;
-      const baseScore = baseAnalysis.overallScore;
-      const lipScore = lipAnalysis.overallScore;
       const overallScore = overallAnalysis.overallScore;
       
       // 전문가 팁은 Gemini에서 받은 개선사항 사용
@@ -162,7 +159,7 @@ async function generateAdvancedFeedback(analyses: Array<{
 }
 
 // 비교 분석 기반 상세 피드백 생성 함수
-function generateComparativeFeedback(analyses: Array<{type: string; imageContent: {labels: Array<{description: string; score: number}>}}>, score: number): {
+function generateComparativeFeedback(analyses: Array<{type: string; imageContent: unknown}>, score: number): {
   overallScore: number;
   overallFeedback: string;
   eyeScore: number;
@@ -203,9 +200,7 @@ function generateComparativeFeedback(analyses: Array<{type: string; imageContent
   expertTips: string[];
   improvements: string[];
 } {
-  const bareFace = analyses.find(a => a.type === 'bareFace');
   const makeup = analyses.find(a => a.type === 'makeup');
-  const reference = analyses.find(a => a.type === 'reference');
   
   // 각 영역별 점수 계산
   if (!makeup) {
@@ -252,17 +247,66 @@ function generateComparativeFeedback(analyses: Array<{type: string; imageContent
     };
   }
 
-  const eyeScore = calculateEyeScore(makeup, bareFace, reference);
-  const baseScore = calculateBaseScore(makeup, bareFace, reference);
-  const lipScore = calculateLipScore(makeup, bareFace, reference);
+  // imageContent 타입 가드
+  const makeupWithLabels = makeup && typeof makeup.imageContent === 'object' && makeup.imageContent !== null && 'labels' in makeup.imageContent 
+    ? { imageContent: makeup.imageContent as { labels: Array<{description: string; score: number}> } }
+    : null;
+
+  if (!makeupWithLabels) {
+    return {
+      overallScore: score,
+      overallFeedback: "메이크업 사진 분석이 필요합니다.",
+      eyeScore: 0,
+      baseScore: 0,
+      lipScore: 0,
+      eyeFeedback: "메이크업 사진 분석이 필요합니다.",
+      baseFeedback: "메이크업 사진 분석이 필요합니다.",
+      lipFeedback: "메이크업 사진 분석이 필요합니다.",
+      eyeMakeup: {
+        score: 0,
+        feedback: "메이크업 사진 분석이 필요합니다.",
+        subScores: {
+          eyeshadowColorHarmony: 0,
+          eyeshadowBlending: 0,
+          eyelinerApplication: 0,
+          mascaraApplication: 0
+        }
+      },
+      baseMakeup: {
+        score: 0,
+        feedback: "메이크업 사진 분석이 필요합니다.",
+        subScores: {
+          skinToneMatching: 0,
+          foundationCoverage: 0,
+          concealerApplication: 0,
+          powderApplication: 0
+        }
+      },
+      lipMakeup: {
+        score: 0,
+        feedback: "메이크업 사진 분석이 필요합니다.",
+        subScores: {
+          lipColorHarmony: 0,
+          lipApplication: 0,
+          lipDefinition: 0
+        }
+      },
+      expertTips: [],
+      improvements: []
+    };
+  }
+
+  const eyeScore = calculateEyeScore(makeupWithLabels);
+  const baseScore = calculateBaseScore(makeupWithLabels);
+  const lipScore = calculateLipScore(makeupWithLabels);
   
   // 각 영역별 피드백 생성
-  const eyeFeedback = generateEyeFeedback(makeup, bareFace, reference);
-  const baseFeedback = generateBaseFeedback(makeup, bareFace, reference);
-  const lipFeedback = generateLipFeedback(makeup, bareFace, reference);
+  const eyeFeedback = generateEyeFeedback(makeupWithLabels);
+  const baseFeedback = generateBaseFeedback(makeupWithLabels);
+  const lipFeedback = generateLipFeedback(makeupWithLabels);
   
   // 전문가 팁 생성
-  const expertTips = generateExpertTips(makeup, bareFace, reference);
+  const expertTips = generateExpertTips();
   
   // 개선사항 생성
   const improvements = generateImprovements(eyeScore, baseScore, lipScore);
@@ -311,7 +355,7 @@ function generateComparativeFeedback(analyses: Array<{type: string; imageContent
 }
 
 // 아이 메이크업 점수 계산
-function calculateEyeScore(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, _bareFace: unknown, _reference: unknown): number {
+function calculateEyeScore(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}): number {
   let score = 60; // 기본 점수 (60~100 범위)
   
   if (makeup?.imageContent?.labels) {
@@ -341,7 +385,7 @@ function calculateEyeScore(makeup: {imageContent: {labels: Array<{description: s
 }
 
 // 베이스 메이크업 점수 계산
-function calculateBaseScore(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, _bareFace: unknown, _reference: unknown): number {
+function calculateBaseScore(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}): number {
   let score = 60; // 기본 점수 (60~100 범위)
   
   if (makeup?.imageContent?.labels) {
@@ -370,7 +414,7 @@ function calculateBaseScore(makeup: {imageContent: {labels: Array<{description: 
 }
 
 // 립 메이크업 점수 계산
-function calculateLipScore(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, _bareFace: unknown, _reference: unknown): number {
+function calculateLipScore(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}): number {
   let score = 60; // 기본 점수 (60~100 범위)
   
   if (makeup?.imageContent?.labels) {
@@ -399,7 +443,7 @@ function calculateLipScore(makeup: {imageContent: {labels: Array<{description: s
 }
 
 // 아이 메이크업 피드백 생성
-function generateEyeFeedback(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, _bareFace: unknown, _reference: unknown): string {
+function generateEyeFeedback(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}): string {
   if (!makeup) return "메이크업 사진이 필요합니다.";
   
   const eyeLabels = makeup.imageContent?.labels?.filter((label: {description: string; score: number}) => 
@@ -447,7 +491,7 @@ function generateEyeFeedback(makeup: {imageContent: {labels: Array<{description:
 }
 
 // 베이스 메이크업 피드백 생성
-function generateBaseFeedback(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, _bareFace: unknown, _reference: unknown): string {
+function generateBaseFeedback(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}): string {
   if (!makeup) return "메이크업 사진이 필요합니다.";
   
   const baseLabels = makeup.imageContent?.labels?.filter((label: {description: string; score: number}) => 
@@ -493,7 +537,7 @@ function generateBaseFeedback(makeup: {imageContent: {labels: Array<{description
 }
 
 // 립 메이크업 피드백 생성
-function generateLipFeedback(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}, _bareFace: unknown, _reference: unknown): string {
+function generateLipFeedback(makeup: {imageContent: {labels: Array<{description: string; score: number}>}}): string {
   if (!makeup) return "메이크업 사진이 필요합니다.";
   
   const lipLabels = makeup.imageContent?.labels?.filter((label: {description: string; score: number}) => 
@@ -539,7 +583,7 @@ function generateLipFeedback(makeup: {imageContent: {labels: Array<{description:
 }
 
 // 전문가 팁 생성
-function generateExpertTips(_makeup: unknown, _bareFace: unknown, _reference: unknown): string[] {
+function generateExpertTips(): string[] {
   const tips = [
     "메이크업 전 충분한 보습은 필수! 프라이머 사용으로 지속력을 높여보세요.",
     "브러시 대신 뷰티블렌더를 사용하면 더 자연스러운 베이스 연출이 가능합니다.",

@@ -58,7 +58,7 @@ async function callGeminiApi(
       lipDefinition: number;
     };
   };
-  subScores: Record<string, any>;
+  subScores: Record<string, unknown>;
   feedback: string;
   improvements: string[];
   strengths: string[];
