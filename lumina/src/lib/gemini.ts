@@ -117,7 +117,15 @@ const unifiedSystemPrompt = `
       }
     },
     "lipMakeup": {
-      "colorHarmony": 1-10, "blending": 1-10, "lipLine": 1-10, "symmetry": 1-10
+      "colorHarmony": {
+        "skinToneMatch": 1-10, "overallMakeupHarmony": 1-10, "brightnessBalance": 1-10, "contrastAppropriate": 1-10
+      },
+      "application": {
+        "colorEvenness": 1-10, "edgeDefinition": 1-10, "gradientQuality": 1-10, "textureConsistency": 1-10
+      },
+      "lipCondition": {
+        "hydrationLevel": 1-10, "textureFinish": 1-10, "exfoliationQuality": 1-10, "overallCondition": 1-10
+      }
     }
   },
   "feedback": "종합적인 평가 피드백",
@@ -168,10 +176,23 @@ const unifiedSystemPrompt = `
   - 얼굴 조화: 쉐딩 배치로 얼굴의 장점을 잘 살렸는지 평가하세요.
 
 [립 메이크업]
-- 색상 조화: 립 컬러가 전체 메이크업 컨셉과 잘 어울리는가
-- 블렌딩: 립 라인과 입술 내부의 경계가 부드러운가
-- 립 라인: 립 라인이 또렷하고 깔끔한가
-- 좌우 대칭성: 입술의 좌우 대칭이 잘 맞는가
+- 립 컬러와 조화:
+  - 피부톤 매칭: 립 컬러의 웜톤/쿨톤이 사용자의 피부톤과 조화롭게 어울리는지 확인하세요. Vision AI의 립 컬러 분석 결과를 참고하여 skinToneHarmony 점수를 활용하세요.
+  - 전체 메이크업 조화: 립 컬러가 아이 메이크업, 블러셔 등 다른 메이크업 요소와 잘 어우러지는지 확인하세요. 전체적인 메이크업의 컨셉(예: 내추럴, 볼드, 청순)을 해치지 않고 잘 어울리는지 평가하세요.
+  - 명도 균형: 립 컬러의 밝기가 얼굴에 생기를 더하거나, 오히려 칙칙하게 만들지는 않는지 확인하세요. Vision AI의 brightness 분석을 참고하세요.
+  - 대비 적절성: 민낯 사진 속 입술 톤과 화장 후 사진 속 립 컬러를 비교해 지나치게 대비되지는 않는지 확인하세요.
+
+- 발색과 적용:
+  - 색상 균일성: 입술 전체에 립 컬러가 고르게 발색되었는지 확인하세요. Vision AI의 colorEvenness 분석을 참고하세요.
+  - 경계선 선명도: 입술의 외곽과 안쪽의 색상 농도가 부자연스럽게 경계를 만들지는 않는지 확인하세요. Vision AI의 edgeDefinition 분석을 참고하세요.
+  - 그라데이션 품질: 그라데이션 립의 경우, 농도 조절이 부드럽고 자연스럽게 연출되었는지 확인하세요. Vision AI의 gradientQuality 분석을 참고하세요.
+  - 질감 일관성: 립 제품이 입술 주름이나 각질에 뭉치거나 얼룩덜룩하게 발리지 않았는지 확인하세요. Vision AI의 textureConsistency 분석을 참고하세요.
+
+- 입술 컨디션과 지속력:
+  - 수분감: 립 메이크업 후에도 입술이 건조해 보이거나 갈라지는 등 컨디션이 좋아 보이는지 확인하세요. Vision AI의 hydrationLevel과 crackingVisible 분석을 참고하세요.
+  - 질감 표현: 립 제품의 제형(매트, 글로시 등)에 따른 질감이 입술에서 잘 표현되었는지 확인하세요. Vision AI의 textureFinish 분석을 참고하세요.
+  - 각질 관리: 립 메이크업 전, 각질이 효과적으로 정리되었는지 확인하세요. Vision AI의 exfoliationNeeded 분석을 참고하세요.
+  - 전반적 컨디션: Vision AI의 lipCondition 분석을 참고하여 입술 전반적인 건강 상태를 평가하세요.
 
 ---
 
@@ -184,6 +205,7 @@ const unifiedSystemPrompt = `
 6.  실제로 적용 가능한 실용적인 조언을 포함하세요.
 7.  모든 내용은 전문적이면서 친근한 톤의 **한국어**로 작성하세요.
 8.  overallScore는 60~100 사이의 정수, subScores의 각 항목은 1~10점 사이의 정수로 할 것.
+9.  **Vision AI 분석 결과를 적극 참고**하여 더 정확하고 객관적인 평가를 수행하세요.
 `;
 
 /**
