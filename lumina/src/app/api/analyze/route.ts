@@ -6,6 +6,7 @@ import { generateMakeupAnalysis } from '@/lib/gemini';
 
 // Gemini를 사용한 고급 피드백 생성 함수
 async function generateAdvancedFeedback(analyses: Array<{
+  type: string;
   faceAnalysis: {
     faceAnnotations: Array<{
       landmarks: Array<{
@@ -15,6 +16,7 @@ async function generateAdvancedFeedback(analyses: Array<{
     }>;
   };
   imageContent: string;
+  imageUrl: string;
 }>, score: number, mainImageUrl: string): Promise<{
   overallScore: number;
   overallFeedback: string;
